@@ -230,6 +230,30 @@
       color: #b91c1c;
     }
 
+    .status-banner {
+      display: none;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      border: 1px solid transparent;
+    }
+
+    .status-banner.success {
+      display: inline-flex;
+      background: #ecfdf3;
+      color: #166534;
+      border-color: #bbf7d0;
+    }
+
+    .status-banner.error {
+      display: inline-flex;
+      background: #fef2f2;
+      color: #b91c1c;
+      border-color: #fecdd3;
+    }
+
     #results-section {
       margin-top: 24px;
       display: none;
@@ -361,6 +385,7 @@
         <button id="show-results" type="button" class="btn btn-secondary">
           Toon resultaten
         </button>
+        <div id="notify-status" class="status-banner" role="status" aria-live="polite"></div>
         <span id="progress-text" class="hint-text">0 van 10 vragen beantwoord.</span>
       </div>
       <div id="hint-all" class="hint-text errorish" style="margin-top:4px;display:none;">
@@ -807,13 +832,29 @@
   }
 
   async function notifyBackendOnce(results) {
-    if (notified) return;
+    const statusEl = document.getElementById("notify-status");
+    const setStatus = (message, variant) => {
+      if (!statusEl) return;
+      if (!message) {
+        statusEl.textContent = "";
+        statusEl.className = "status-banner";
+        return;
+      }
+      statusEl.textContent = message;
+      statusEl.className = `status-banner ${variant}`;
+    };
+
+    if (notified) {
+      setStatus("Resultaten verstuurd", "success");
+      return;
+    }
     const name = document.getElementById("name").value.trim();
     const email = document.getElementById("email").value.trim();
     const node = document.getElementById("results-grid");
     if (!node) return;
 
     try {
+      setStatus("", "");
       const canvas = await html2canvas(node, { scale: 2 });
       const imgData = canvas.toDataURL("image/png");
       const { jsPDF } = window.jspdf;
@@ -863,7 +904,7 @@
         fr.readAsDataURL(blob);
       });
 
-      await fetch("/api/quickscan-notify", {
+      const res = await fetch("/api/quickscan-notify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -874,9 +915,16 @@
         })
       });
 
+      if (!res.ok) {
+        throw new Error(`Notificatie mislukt (status ${res.status})`);
+      }
+
+      setStatus("Resultaten verstuurd", "success");
       notified = true;
     } catch (e) {
       console.warn("Notificatie mislukt of endpoint ontbreekt", e);
+      setStatus("Versturen mislukt. Probeer opnieuw of neem contact op.", "error");
+      notified = false;
     }
   }
 

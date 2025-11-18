@@ -637,8 +637,9 @@
     const answeredCount = DIMENSIONS.reduce((acc, d) => {
       return acc + (answers[d.key].q1 ? 1 : 0) + (answers[d.key].q2 ? 1 : 0);
     }, 0);
-    document.getElementById("progress-text").textContent =
-      answeredCount + " van 10 vragen beantwoord.";
+    const total = DIMENSIONS.length * 2;
+    const progressText = document.getElementById("progress-text");
+    progressText.textContent = `${answeredCount} van ${total} vragen beantwoord.`;
   }
 
   function updateValidationUi() {

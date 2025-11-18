@@ -562,7 +562,7 @@
   // --- Helpers ---
   function emailValid(email) {
     const e = email.trim();
-    return e.includes("@") && e.includes(".");
+    return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i.test(e);
   }
 
   function allQuestionsAnswered() {
@@ -665,7 +665,7 @@
 
     if (tried && !emailValid(email)) {
       emailEl.classList.add("error");
-      emailError.textContent = "Vul een geldig e-mailadres in.";
+      emailError.textContent = "Gebruik een geldig e-mailadres (bijv. naam@domein.ext).";
       emailError.style.display = "block";
     } else {
       emailEl.classList.remove("error");

@@ -1,0 +1,9 @@
+{
+  "name": "quickscan",
+  "version": "1.0.0",
+  "description": "Quick Scan Logistieke Ketenvolwassenheid static site",
+  "private": true,
+  "scripts": {
+    "test": "echo \"No automated tests available.\""
+  }
+}

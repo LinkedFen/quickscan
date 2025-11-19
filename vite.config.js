@@ -9,4 +9,14 @@ export default defineConfig({
     emptyOutDir: true,
   },
   plugins: [legacy()],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          charting: ["chart.js"],
+          pdf: ["html2canvas", "jspdf"]
+        }
+      }
+    }
+  }
 });

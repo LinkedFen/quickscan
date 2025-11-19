@@ -7,9 +7,6 @@ export default defineConfig({
   build: {
     outDir: "../dist",
     emptyOutDir: true,
-  },
-  plugins: [legacy()],
-  build: {
     rollupOptions: {
       output: {
         manualChunks: {
@@ -18,5 +15,6 @@ export default defineConfig({
         }
       }
     }
-  }
+  },
+  plugins: [legacy()]
 });

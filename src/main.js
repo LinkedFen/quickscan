@@ -1,8 +1,7 @@
 import "./style.css";
 import { appTemplate } from "./appTemplate";
-import Chart from "chart.js/auto";
-import html2canvas from "html2canvas";
-import { jsPDF } from "jspdf";
+import { renderRadarChart } from "./charting";
+import { exportResultsPdf } from "./pdfExport";
 
 const root = document.querySelector("#app");
 root.innerHTML = appTemplate;
@@ -297,60 +296,8 @@ function updateValidationUi() {
 }
 
 function renderRadar(results) {
-  const ctx = document.getElementById("radarChart").getContext("2d");
-  const labels = results.map(r => r.label);
-  const data = results.map(r => r.level);
-
-  if (radarChart) radarChart.destroy();
-
-  radarChart = new Chart(ctx, {
-    type: "radar",
-    data: {
-      labels,
-      datasets: [
-        {
-          label: "Niveau",
-          data,
-          backgroundColor: "rgba(79,70,229,0.3)",
-          borderColor: "#4f46e5",
-          borderWidth: 2,
-          pointBackgroundColor: "#4f46e5",
-          pointRadius: 3
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      scales: {
-        r: {
-          beginAtZero: true,
-          min: 0,
-          max: 5,
-          ticks: {
-            stepSize: 1,
-            showLabelBackdrop: false
-          },
-          grid: {
-            color: "rgba(148,163,184,0.4)"
-          },
-          angleLines: {
-            color: "rgba(148,163,184,0.4)"
-          },
-          pointLabels: {
-            font: { size: 10 }
-          }
-        }
-      },
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label: ctx => "Niveau " + ctx.parsed.r
-          }
-        }
-      }
-    }
-  });
+  const canvas = document.getElementById("radarChart");
+  radarChart = renderRadarChart(canvas, results, radarChart);
 }
 
 function renderDimensionResults(results) {
@@ -504,62 +451,20 @@ async function notifyBackendOnce(results) {
   }
 }
 
-async function downloadPdf(results) {
+async function downloadPdf() {
   const node = document.getElementById("results-grid");
   if (!node) return;
   const name = document.getElementById("name").value.trim();
   const email = document.getElementById("email").value.trim();
   const narrative = document.getElementById("narrative-text").textContent || "";
 
-  const canvas = await html2canvas(node, { scale: 2 });
-  const imgData = canvas.toDataURL("image/png");
-  const pdf = new jsPDF({ unit: "pt", format: "a4" });
-  const pageWidth = pdf.internal.pageSize.getWidth();
-  const pageHeight = pdf.internal.pageSize.getHeight();
-  const margin = 36;
-  const usable = pageWidth - margin * 2;
-
-  if (SUPPLY_VALUE_LOGO) {
-    try {
-      const logoImg = new Image();
-      logoImg.src = SUPPLY_VALUE_LOGO;
-      await logoImg.decode();
-      pdf.addImage(logoImg, "PNG", margin, 20, 120, 32);
-    } catch (e) {
-      console.warn("Logo kon niet geladen worden", e);
-    }
-  }
-
-  pdf.setFontSize(14);
-  pdf.text("Quick Scan Logistieke Ketenvolwassenheid", margin, 72);
-  pdf.setFontSize(10);
-  const dt = new Date().toLocaleString();
-  pdf.text(`Naam: ${name}  •  E-mail: ${email}  •  Datum: ${dt}`, margin, 88);
-
-  const imgWidth = usable;
-  const imgHeight = (canvas.height * imgWidth) / canvas.width;
-  const yStart = 100;
-  pdf.addImage(
-    imgData,
-    "PNG",
-    margin,
-    yStart,
-    imgWidth,
-    Math.min(imgHeight, pageHeight - yStart - 160)
-  );
-
-  let narrativeY = yStart + Math.min(imgHeight, pageHeight - yStart - 160) + 20;
-  if (narrativeY > pageHeight - 120) {
-    pdf.addPage();
-    narrativeY = 60;
-  }
-  pdf.setFontSize(12);
-  pdf.text("Advies (samenvatting)", margin, narrativeY);
-  pdf.setFontSize(10);
-  const split = pdf.splitTextToSize(narrative, usable);
-  pdf.text(split, margin, narrativeY + 16);
-
-  pdf.save("QuickScan_LogistiekeKetenvolwassenheid.pdf");
+  await exportResultsPdf({
+    node,
+    name,
+    email,
+    narrative,
+    logoDataUri: SUPPLY_VALUE_LOGO
+  });
 }
 
 // --- Init UI ---
@@ -681,8 +586,7 @@ function init() {
 
   document.getElementById("download-pdf").addEventListener("click", async () => {
     if (!submitted || !allAnsweredAndValid()) return;
-    const results = calcResults();
-    await downloadPdf(results);
+    await downloadPdf();
   });
 }
 

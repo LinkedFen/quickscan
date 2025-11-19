@@ -59,7 +59,7 @@ export const appTemplate = `
       <div id="results-grid" class="grid-2-narrow">
         <div class="card">
           <h3 style="font-size:0.95rem;margin:0 0 10px;font-weight:600;">Interactieve visualisatie</h3>
-          <div style="height:320px;">
+          <div style="height:380px;">
             <canvas id="radarChart"></canvas>
           </div>
         </div>

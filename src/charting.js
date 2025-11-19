@@ -27,6 +27,15 @@ export function renderRadarChart(canvasEl, results, previousChart) {
     },
     options: {
       responsive: true,
+      maintainAspectRatio: false,
+      layout: {
+        padding: {
+          top: 20,
+          bottom: 20,
+          left: 20,
+          right: 20
+        }
+      },
       scales: {
         r: {
           beginAtZero: true,
@@ -43,7 +52,8 @@ export function renderRadarChart(canvasEl, results, previousChart) {
             color: "rgba(148,163,184,0.4)"
           },
           pointLabels: {
-            font: { size: 10 }
+            font: { size: 11 },
+            padding: 10
           }
         }
       },

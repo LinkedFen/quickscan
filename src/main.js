@@ -443,10 +443,7 @@ async function notifyBackendOnce(results) {
     notified = true;
   } catch (e) {
     console.warn("Notificatie mislukt of endpoint ontbreekt", e);
-    setStatus(
-      "Resultaten worden hier getoond. Backend-notificatie niet beschikbaar.",
-      "warning"
-    );
+    // Don't show warning to users - silently fail backend notification
     notified = false;
   }
 }

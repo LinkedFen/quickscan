@@ -113,11 +113,13 @@ Compatible hosting services include:
 
 ### Base URL
 
-The application uses relative paths (`base: "./"` in `vite.config.js`) which works for most hosting scenarios. If deploying to a subdirectory, update the `base` option in `vite.config.js`:
+The application is configured with `base: "/quickscan/"` in `vite.config.js` for GitHub Pages deployment at `https://zwennaf.github.io/quickscan/`. If deploying to a different location, update the `base` option:
 
 ```javascript
 export default defineConfig({
-  base: "/your-subdirectory/",
+  base: "/your-subdirectory/",  // For subdirectory hosting
+  // or
+  base: "/",  // For root domain hosting
   // ...
 });
 ```

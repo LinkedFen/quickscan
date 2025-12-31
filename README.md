@@ -1,6 +1,6 @@
 # Quick Scan Logistieke Ketenvolwassenheid
 
-**🚀 [Try the Live Application](https://zwennaf.github.io/quickscan/)**
+**🚀 [Try the Live Application][(https://fen-z.github.io/quickscan/)]**
 
 A static web application for assessing supply chain maturity across five key dimensions: Warehouse & Inventory Management, Transport & Distribution, Planning, IT & Data-Driven Operations, and Chain Governance & Collaboration.
 

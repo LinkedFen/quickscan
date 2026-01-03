@@ -40,6 +40,27 @@ export default async function handler(req, res) {
     // Extract base64 data from data URI
     const base64Data = pdfBase64.split(',')[1] || pdfBase64;
 
+    // Escape HTML to prevent XSS
+    const escapeHtml = (text) => {
+      const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+      };
+      return text.replace(/[&<>"']/g, m => map[m]);
+    };
+
+    // Sanitize filename - only allow alphanumeric, spaces, and hyphens
+    const sanitizeFilename = (text) => {
+      return text.replace(/[^a-zA-Z0-9\s-]/g, '').replace(/\s+/g, '-').substring(0, 50);
+    };
+
+    const safeName = escapeHtml(name);
+    const safeEmail = escapeHtml(email);
+    const safeFilename = sanitizeFilename(name);
+
     // Prepare email
     const msg = {
       to: notificationEmail,
@@ -50,8 +71,8 @@ export default async function handler(req, res) {
         <p>Er is een nieuwe quick scan ingevuld.</p>
         <h3>Contactgegevens:</h3>
         <ul>
-          <li><strong>Naam:</strong> ${name}</li>
-          <li><strong>E-mail:</strong> ${email}</li>
+          <li><strong>Naam:</strong> ${safeName}</li>
+          <li><strong>E-mail:</strong> ${safeEmail}</li>
           <li><strong>Datum:</strong> ${new Date().toLocaleString('nl-NL')}</li>
         </ul>
         <p>De volledige resultaten inclusief volwassenheidsprofiel en advies zijn bijgevoegd als PDF.</p>
@@ -59,7 +80,7 @@ export default async function handler(req, res) {
       attachments: [
         {
           content: base64Data,
-          filename: `quickscan-${name.replace(/\s+/g, '-')}-${Date.now()}.pdf`,
+          filename: `quickscan-${safeFilename}-${Date.now()}.pdf`,
           type: 'application/pdf',
           disposition: 'attachment'
         }

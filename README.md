@@ -113,6 +113,17 @@ Compatible hosting services include:
 
 ## Configuration
 
+### Email Notifications
+
+The application can send email notifications when someone completes the quick scan. You'll receive the person's contact details and their results as a PDF attachment.
+
+**📧 [See detailed setup guide: EMAIL_NOTIFICATION_SETUP.md](./EMAIL_NOTIFICATION_SETUP.md)**
+
+Quick setup options:
+- **Netlify** (recommended): Deploy with built-in serverless functions
+- **Vercel**: Alternative platform with serverless functions
+- **GitHub Pages**: Use external backend or form service
+
 ### Base URL
 
 The application is configured with `base: "/quickscan/"` in `vite.config.js` for GitHub Pages deployment at `https://zwennaf.github.io/quickscan/`. If deploying to a different location, update the `base` option:

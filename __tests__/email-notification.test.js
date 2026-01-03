@@ -32,7 +32,7 @@ describe('Email Notification Setup Tests', () => {
 
         test('Netlify function uses environment variables', () => {
             expect(functionContent).toContain('process.env.NOTIFICATION_EMAIL');
-            expect(functionContent).toContain('process.env.SENDGRID_API_KEY');
+            expect(functionContent).toContain('process.env.RESEND_API_KEY');
         });
     });
 

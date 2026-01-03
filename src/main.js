@@ -9,6 +9,9 @@ root.innerHTML = appTemplate;
 // Optioneel logo in PDF (base64 PNG). Laat leeg als niet nodig.
 const SUPPLY_VALUE_LOGO = ""; // bijv: "data:image/png;base64,AAA..."
 
+// Email address for notifications (from environment variable)
+const NOTIFICATION_EMAIL = import.meta.env.VITE_NOTIFICATION_EMAIL || "f.zwaans@supplyvalue.nl";
+
 // --- Domeinmodel overgenomen uit het React-artifact ---
 const DIMENSIONS = [
   {
@@ -428,7 +431,7 @@ async function notifyBackendOnce(results) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        to: "f.zwaans@supplyvalue.nl",
+        to: NOTIFICATION_EMAIL,
         name,
         email,
         pdfBase64: `data:application/pdf;base64,${base64}`

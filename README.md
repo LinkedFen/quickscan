@@ -113,6 +113,22 @@ Compatible hosting services include:
 
 ## Configuration
 
+### Environment Variables
+
+The application can be configured using environment variables. Create a `.env` file in the root directory based on `.env.example`:
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env` to set your configuration:
+
+```env
+VITE_NOTIFICATION_EMAIL=your.email@example.com
+```
+
+**Note:** Never commit your `.env` file to version control as it may contain sensitive information.
+
 ### Base URL
 
 The application is configured with `base: "/quickscan/"` in `vite.config.js` for GitHub Pages deployment at `https://zwennaf.github.io/quickscan/`. If deploying to a different location, update the `base` option:
@@ -154,4 +170,4 @@ Private project for Supply Value.
 
 ## Contact
 
-For questions or support, contact: f.zwaans@supplyvalue.nl
+For questions or support, please refer to the project documentation or create an issue in the repository.

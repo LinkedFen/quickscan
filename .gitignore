@@ -2,3 +2,8 @@ node_modules
 dist/
 src/dist/
 .DS_Store
+.netlify
+.vercel
+*.log
+.env
+.env.local

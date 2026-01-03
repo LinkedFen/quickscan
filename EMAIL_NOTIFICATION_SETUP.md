@@ -6,7 +6,21 @@ This guide explains how to configure email notifications for the Quick Scan appl
 
 The application already includes code to send notifications to `/api/quickscan-notify` endpoint. You need to set up a backend serverless function to handle these requests and send emails.
 
-## Option 1: Deploy to Netlify (Recommended)
+## ⚡ RECOMMENDED: Use Resend (FREE & Easy)
+
+**Cannot create a SendGrid account? Use Resend instead!**
+
+Resend offers:
+- ✅ 100 emails/day, 3,000/month (free)
+- ✅ No credit card required
+- ✅ Easier setup than SendGrid
+- ✅ Test email included (`onboarding@resend.dev`)
+
+**📘 [See detailed Resend setup guide: RESEND_SETUP.md](./RESEND_SETUP.md)** - Follow this if you can't use SendGrid!
+
+---
+
+## Option 1: Deploy to Netlify with SendGrid
 
 Netlify offers free serverless functions and is easy to set up.
 

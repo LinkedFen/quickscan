@@ -21,7 +21,8 @@
     "vite": "^6.0.5"
   },
   "optionalDependencies": {
-    "@sendgrid/mail": "^8.1.4"
+    "@sendgrid/mail": "^8.1.4",
+    "resend": "^4.0.0"
   },
   "jest": {
     "testEnvironment": "jsdom"

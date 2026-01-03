@@ -143,5 +143,87 @@ describe('Email Notification Setup Tests', () => {
             expect(packageJson.optionalDependencies).toBeDefined();
             expect(packageJson.optionalDependencies['@sendgrid/mail']).toBeDefined();
         });
+
+        test('Package.json includes Resend as optional dependency', () => {
+            const packagePath = path.join(__dirname, '../package.json');
+            const packageContent = fs.readFileSync(packagePath, 'utf-8');
+            const packageJson = JSON.parse(packageContent);
+            expect(packageJson.optionalDependencies).toBeDefined();
+            expect(packageJson.optionalDependencies['resend']).toBeDefined();
+        });
+    });
+
+    describe('Resend Alternative Functions', () => {
+        describe('Netlify Resend Function', () => {
+            const netlifyResendPath = path.join(__dirname, '../netlify/functions/quickscan-notify-resend.js');
+            let functionContent;
+
+            beforeAll(() => {
+                if (fs.existsSync(netlifyResendPath)) {
+                    functionContent = fs.readFileSync(netlifyResendPath, 'utf-8');
+                }
+            });
+
+            test('Netlify Resend function file exists', () => {
+                expect(fs.existsSync(netlifyResendPath)).toBe(true);
+            });
+
+            test('Netlify Resend function uses Resend library', () => {
+                expect(functionContent).toContain('Resend');
+                expect(functionContent).toContain('RESEND_API_KEY');
+            });
+
+            test('Netlify Resend function validates required fields', () => {
+                expect(functionContent).toContain('name');
+                expect(functionContent).toContain('email');
+                expect(functionContent).toContain('pdfBase64');
+            });
+        });
+
+        describe('Vercel Resend Function', () => {
+            const vercelResendPath = path.join(__dirname, '../api/quickscan-notify-resend.js');
+            let functionContent;
+
+            beforeAll(() => {
+                if (fs.existsSync(vercelResendPath)) {
+                    functionContent = fs.readFileSync(vercelResendPath, 'utf-8');
+                }
+            });
+
+            test('Vercel Resend function file exists', () => {
+                expect(fs.existsSync(vercelResendPath)).toBe(true);
+            });
+
+            test('Vercel Resend function uses Resend library', () => {
+                expect(functionContent).toContain('Resend');
+                expect(functionContent).toContain('RESEND_API_KEY');
+            });
+
+            test('Vercel Resend function validates required fields', () => {
+                expect(functionContent).toContain('name');
+                expect(functionContent).toContain('email');
+                expect(functionContent).toContain('pdfBase64');
+            });
+        });
+
+        test('Resend setup guide exists', () => {
+            const resendGuidePath = path.join(__dirname, '../RESEND_SETUP.md');
+            expect(fs.existsSync(resendGuidePath)).toBe(true);
+        });
+
+        test('Resend setup guide contains setup instructions', () => {
+            const resendGuidePath = path.join(__dirname, '../RESEND_SETUP.md');
+            const guideContent = fs.readFileSync(resendGuidePath, 'utf-8');
+            expect(guideContent).toContain('Resend');
+            expect(guideContent).toContain('resend.com');
+            expect(guideContent).toContain('API Key');
+        });
+
+        test('README references Resend setup', () => {
+            const readmePath = path.join(__dirname, '../README.md');
+            const readmeContent = fs.readFileSync(readmePath, 'utf-8');
+            expect(readmeContent).toContain('Resend');
+            expect(readmeContent).toContain('RESEND_SETUP.md');
+        });
     });
 });

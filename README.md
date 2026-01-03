@@ -119,7 +119,10 @@ The application can send email notifications when someone completes the quick sc
 
 **📧 [See detailed setup guide: EMAIL_NOTIFICATION_SETUP.md](./EMAIL_NOTIFICATION_SETUP.md)**
 
+**⚡ Cannot use SendGrid? [Use Resend instead (FREE): RESEND_SETUP.md](./RESEND_SETUP.md)**
+
 Quick setup options:
+- **Resend** (easiest): Free, no credit card, includes test email
 - **Netlify** (recommended): Deploy with built-in serverless functions
 - **Vercel**: Alternative platform with serverless functions
 - **GitHub Pages**: Use external backend or form service

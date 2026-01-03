@@ -131,8 +131,15 @@ Based on the initial problem statement, similar patterns should be applied:
    // Before (insecure)
    const apiKey = "actual-api-key-here";
    
-   // After (secure)
-   const apiKey = import.meta.env.VITE_API_KEY || '';
+   // After (secure with validation)
+   const apiKey = import.meta.env.VITE_API_KEY;
+   if (!apiKey) {
+     console.error('VITE_API_KEY is not configured');
+     // Handle missing configuration appropriately:
+     // - Show user-friendly error message
+     // - Disable dependent features
+     // - Or use throw new Error() for critical config
+   }
    ```
 
 ### Rotating Existing Secrets

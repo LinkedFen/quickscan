@@ -10,7 +10,8 @@ root.innerHTML = appTemplate;
 const SUPPLY_VALUE_LOGO = ""; // bijv: "data:image/png;base64,AAA..."
 
 // Email address for notifications (from environment variable)
-const NOTIFICATION_EMAIL = import.meta.env.VITE_NOTIFICATION_EMAIL || "f.zwaans@supplyvalue.nl";
+// Set VITE_NOTIFICATION_EMAIL in .env to enable backend notifications
+const NOTIFICATION_EMAIL = import.meta.env.VITE_NOTIFICATION_EMAIL || "";
 
 // --- Domeinmodel overgenomen uit het React-artifact ---
 const DIMENSIONS = [
@@ -372,6 +373,14 @@ async function notifyBackendOnce(results) {
     setStatus("Resultaten verstuurd", "success");
     return;
   }
+  
+  // Skip notification if no email is configured
+  if (!NOTIFICATION_EMAIL) {
+    console.info("Backend notification skipped: VITE_NOTIFICATION_EMAIL not configured");
+    notified = true;
+    return;
+  }
+  
   const name = document.getElementById("name").value.trim();
   const email = document.getElementById("email").value.trim();
   const node = document.getElementById("results-grid");

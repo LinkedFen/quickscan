@@ -74,7 +74,7 @@ exports.handler = async (event, context) => {
     const msg = {
       to: notificationEmail,
       from: process.env.FROM_EMAIL || notificationEmail, // Use verified sender
-      subject: `Nieuwe Quick Scan resultaten van ${name}`,
+      subject: `Nieuwe Quick Scan resultaten van ${safeName}`,
       html: `
         <h2>Nieuwe Quick Scan Logistieke Ketenvolwassenheid</h2>
         <p>Er is een nieuwe quick scan ingevuld.</p>

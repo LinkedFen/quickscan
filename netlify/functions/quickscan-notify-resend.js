@@ -91,6 +91,7 @@ exports.handler = async (event, context) => {
         {
           filename: `quickscan-${safeFilename}-${Date.now()}.pdf`,
           content: base64Data,
+          type: 'application/pdf',
         }
       ]
     });

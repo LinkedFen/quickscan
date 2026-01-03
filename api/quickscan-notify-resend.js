@@ -82,6 +82,7 @@ export default async function handler(req, res) {
         {
           filename: `quickscan-${safeFilename}-${Date.now()}.pdf`,
           content: base64Data,
+          type: 'application/pdf',
         }
       ]
     });

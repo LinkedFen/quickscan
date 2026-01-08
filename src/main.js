@@ -253,7 +253,9 @@ function updateProgress() {
   const progressBar = document.getElementById("progress-bar");
   const percentage = (answeredCount / total) * 100;
   progressBarFill.style.width = `${percentage}%`;
+  // Ensure aria-valuenow matches the actual count (0-10, not 0-20)
   progressBar.setAttribute("aria-valuenow", answeredCount.toString());
+  progressBar.setAttribute("aria-valuemax", total.toString());
 }
 
 function updateValidationUi() {
@@ -268,8 +270,13 @@ function updateValidationUi() {
   const emailError = document.getElementById("error-email");
   const consentError = document.getElementById("error-consent");
 
+  // Helper function to check if contact validation is needed
+  const shouldValidateContactFields = () => {
+    return name || email || consent;
+  };
+
   // Only validate contact info if user has started entering it
-  const hasStartedContact = name || email || consent;
+  const hasStartedContact = shouldValidateContactFields();
   
   if (tried && hasStartedContact && !name) {
     nameEl.classList.add("error");
@@ -281,7 +288,12 @@ function updateValidationUi() {
     nameError.style.display = "none";
   }
 
-  if (tried && hasStartedContact && email && !emailValid(email)) {
+  // Validate email: must be provided and valid if contact was started
+  if (tried && hasStartedContact && !email) {
+    emailEl.classList.add("error");
+    emailError.textContent = "Vul uw e-mailadres in als u uw gegevens wilt delen.";
+    emailError.style.display = "block";
+  } else if (tried && hasStartedContact && email && !emailValid(email)) {
     emailEl.classList.add("error");
     emailError.textContent = "Gebruik een geldig e-mailadres (bijv. naam@domein.ext).";
     emailError.style.display = "block";
@@ -291,7 +303,12 @@ function updateValidationUi() {
     emailError.style.display = "none";
   }
 
-  if (tried && hasStartedContact && (name || email) && !consent) {
+  // Helper function for consent validation logic
+  const shouldValidateConsent = () => {
+    return hasStartedContact && (name || email) && !consent;
+  };
+
+  if (tried && shouldValidateConsent()) {
     consentError.textContent = "Accepteer de voorwaarden om uw gegevens te delen.";
     consentError.style.display = "block";
   } else {

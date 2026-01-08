@@ -18,7 +18,7 @@ export const appTemplate = `
         <div id="progress-bar" class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="10">
           <div id="progress-bar-fill" class="progress-bar-fill"></div>
         </div>
-        <span id="progress-text" class="progress-text" aria-live="polite">Voortgang: 0/10 voltooid</span>
+        <span id="progress-text" class="progress-text" aria-live="polite" aria-atomic="true">Voortgang: 0/10 voltooid</span>
       </div>
 
       <div id="dimensions-container" class="grid-2"></div>

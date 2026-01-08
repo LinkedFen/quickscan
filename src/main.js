@@ -9,6 +9,10 @@ root.innerHTML = appTemplate;
 // Optioneel logo in PDF (base64 PNG). Laat leeg als niet nodig.
 const SUPPLY_VALUE_LOGO = ""; // bijv: "data:image/png;base64,AAA..."
 
+// Email address for notifications (from environment variable)
+// Set VITE_NOTIFICATION_EMAIL in .env to enable backend notifications
+const NOTIFICATION_EMAIL = import.meta.env.VITE_NOTIFICATION_EMAIL || "";
+
 // --- Domeinmodel overgenomen uit het React-artifact ---
 const DIMENSIONS = [
   {
@@ -369,6 +373,14 @@ async function notifyBackendOnce(results) {
     setStatus("Resultaten verstuurd", "success");
     return;
   }
+  
+  // Skip notification if no email is configured
+  if (!NOTIFICATION_EMAIL) {
+    console.info("Backend notification skipped: VITE_NOTIFICATION_EMAIL not configured");
+    notified = true;
+    return;
+  }
+  
   const name = document.getElementById("name").value.trim();
   const email = document.getElementById("email").value.trim();
   const node = document.getElementById("results-grid");
@@ -428,7 +440,7 @@ async function notifyBackendOnce(results) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        to: "f.zwaans@supplyvalue.nl",
+        to: NOTIFICATION_EMAIL,
         name,
         email,
         pdfBase64: `data:application/pdf;base64,${base64}`

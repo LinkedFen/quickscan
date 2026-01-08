@@ -113,19 +113,21 @@ Compatible hosting services include:
 
 ## Configuration
 
-### Email Notifications
+### Environment Variables
 
-The application can send email notifications when someone completes the quick scan. You'll receive the person's contact details and their results as a PDF attachment.
+The application can be configured using environment variables. Create a `.env` file in the root directory based on `.env.example`:
 
-**📧 [See detailed setup guide: EMAIL_NOTIFICATION_SETUP.md](./EMAIL_NOTIFICATION_SETUP.md)**
+```bash
+cp .env.example .env
+```
 
-**⚡ Cannot use SendGrid? [Use Resend instead (FREE): RESEND_SETUP.md](./RESEND_SETUP.md)**
+Edit `.env` to set your configuration:
 
-Quick setup options:
-- **Resend** (easiest): Free, no credit card, includes test email
-- **Netlify** (recommended): Deploy with built-in serverless functions
-- **Vercel**: Alternative platform with serverless functions
-- **GitHub Pages**: Use external backend or form service
+```env
+VITE_NOTIFICATION_EMAIL=your.email@example.com
+```
+
+**Note:** Never commit your `.env` file to version control as it may contain sensitive information.
 
 ### Base URL
 
@@ -168,4 +170,4 @@ Private project for Supply Value.
 
 ## Contact
 
-For questions or support, contact: f.zwaans@supplyvalue.nl
+For questions or support, please refer to the project documentation or create an issue in the repository.

@@ -1,15 +1,16 @@
 /**
- * Netlify Function to send email notifications when someone completes the quickscan
+ * Netlify Function using Resend - FREE Alternative to SendGrid
+ * 
+ * Resend offers 100 emails/day and 3,000 emails/month on free tier
+ * Sign up at: https://resend.com
  * 
  * Environment Variables Required:
  * - NOTIFICATION_EMAIL: The email address to send notifications to (e.g., f.zwaans@supplyvalue.nl)
- * - SENDGRID_API_KEY: Your SendGrid API key (or use another email service)
- * 
- * Alternative: You can use any email service (AWS SES, Mailgun, Postmark, etc.)
- * Just modify the sendEmail function below
+ * - RESEND_API_KEY: Your Resend API key (starts with re_)
+ * - FROM_EMAIL: Your verified sender email (e.g., onboarding@resend.dev for testing)
  */
 
-const sendgrid = require('@sendgrid/mail');
+const { Resend } = require('resend');
 
 exports.handler = async (event, context) => {
   // Only allow POST requests
@@ -33,18 +34,18 @@ exports.handler = async (event, context) => {
 
     // Get notification email from environment variable
     const notificationEmail = process.env.NOTIFICATION_EMAIL || to;
-    const sendGridApiKey = process.env.SENDGRID_API_KEY;
+    const resendApiKey = process.env.RESEND_API_KEY;
 
-    if (!sendGridApiKey) {
-      console.error('SENDGRID_API_KEY not configured');
+    if (!resendApiKey) {
+      console.error('RESEND_API_KEY not configured');
       return {
         statusCode: 500,
         body: JSON.stringify({ error: 'Email service not configured' })
       };
     }
 
-    // Configure SendGrid
-    sendgrid.setApiKey(sendGridApiKey);
+    // Initialize Resend
+    const resend = new Resend(resendApiKey);
 
     // Extract base64 data from data URI
     const base64Data = pdfBase64.split(',')[1] || pdfBase64;
@@ -70,10 +71,10 @@ exports.handler = async (event, context) => {
     const safeEmail = escapeHtml(email);
     const safeFilename = sanitizeFilename(name);
 
-    // Prepare email
-    const msg = {
+    // Send email using Resend
+    const { data, error } = await resend.emails.send({
+      from: process.env.FROM_EMAIL || 'onboarding@resend.dev',
       to: notificationEmail,
-      from: process.env.FROM_EMAIL || notificationEmail, // Use verified sender
       subject: `Nieuwe Quick Scan resultaten van ${safeName}`,
       html: `
         <h2>Nieuwe Quick Scan Logistieke Ketenvolwassenheid</h2>
@@ -88,20 +89,20 @@ exports.handler = async (event, context) => {
       `,
       attachments: [
         {
-          content: base64Data,
           filename: `quickscan-${safeFilename}-${Date.now()}.pdf`,
+          content: base64Data,
           type: 'application/pdf',
-          disposition: 'attachment'
         }
       ]
-    };
+    });
 
-    // Send email
-    await sendgrid.send(msg);
+    if (error) {
+      throw error;
+    }
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ success: true, message: 'Notification sent successfully' })
+      body: JSON.stringify({ success: true, message: 'Notification sent successfully', id: data.id })
     };
 
   } catch (error) {

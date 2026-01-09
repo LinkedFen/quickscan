@@ -171,11 +171,16 @@ function allQuestionsAnswered() {
   return DIMENSIONS.every(d => answers[d.key].q1 && answers[d.key].q2);
 }
 
-function allAnsweredAndValid() {
+function contactInfoProvided() {
   const name = document.getElementById("name").value.trim();
   const email = document.getElementById("email").value.trim();
   const consent = document.getElementById("consent").checked;
-  return allQuestionsAnswered() && name && emailValid(email) && consent;
+  return name && emailValid(email) && consent;
+}
+
+function allAnsweredAndValid() {
+  // Only questions need to be answered; contact info is optional
+  return allQuestionsAnswered();
 }
 
 function levelFromValues(q1, q2) {
@@ -241,7 +246,16 @@ function updateProgress() {
   }, 0);
   const total = DIMENSIONS.length * 2;
   const progressText = document.getElementById("progress-text");
-  progressText.textContent = `${answeredCount} van ${total} vragen beantwoord.`;
+  progressText.textContent = `Voortgang: ${answeredCount}/${total} voltooid`;
+  
+  // Update progress bar
+  const progressBarFill = document.getElementById("progress-bar-fill");
+  const progressBar = document.getElementById("progress-bar");
+  const percentage = (answeredCount / total) * 100;
+  progressBarFill.style.width = `${percentage}%`;
+  // Ensure aria-valuenow matches the actual count (0-10, not 0-20)
+  progressBar.setAttribute("aria-valuenow", answeredCount.toString());
+  progressBar.setAttribute("aria-valuemax", total.toString());
 }
 
 function updateValidationUi() {
@@ -256,9 +270,17 @@ function updateValidationUi() {
   const emailError = document.getElementById("error-email");
   const consentError = document.getElementById("error-consent");
 
-  if (tried && !name) {
+  // Helper function to check if contact validation is needed
+  const shouldValidateContactFields = () => {
+    return name || email || consent;
+  };
+
+  // Only validate contact info if user has started entering it
+  const hasStartedContact = shouldValidateContactFields();
+  
+  if (tried && hasStartedContact && !name) {
     nameEl.classList.add("error");
-    nameError.textContent = "Vul uw naam in.";
+    nameError.textContent = "Vul uw naam in als u uw gegevens wilt delen.";
     nameError.style.display = "block";
   } else {
     nameEl.classList.remove("error");
@@ -266,7 +288,12 @@ function updateValidationUi() {
     nameError.style.display = "none";
   }
 
-  if (tried && !emailValid(email)) {
+  // Validate email: must be provided and valid if contact was started
+  if (tried && hasStartedContact && !email) {
+    emailEl.classList.add("error");
+    emailError.textContent = "Vul uw e-mailadres in als u uw gegevens wilt delen.";
+    emailError.style.display = "block";
+  } else if (tried && hasStartedContact && email && !emailValid(email)) {
     emailEl.classList.add("error");
     emailError.textContent = "Gebruik een geldig e-mailadres (bijv. naam@domein.ext).";
     emailError.style.display = "block";
@@ -276,24 +303,33 @@ function updateValidationUi() {
     emailError.style.display = "none";
   }
 
-  if (tried && !consent) {
+  // Helper function for consent validation logic
+  const shouldValidateConsent = () => {
+    return hasStartedContact && (name || email) && !consent;
+  };
+
+  if (tried && shouldValidateConsent()) {
+    consentError.textContent = "Accepteer de voorwaarden om uw gegevens te delen.";
     consentError.style.display = "block";
   } else {
+    consentError.textContent = "";
     consentError.style.display = "none";
   }
 
   const allOk = allAnsweredAndValid();
-  const hintAll = document.getElementById("hint-all");
+  const hintQuestions = document.getElementById("hint-questions");
   const btn = document.getElementById("show-results");
 
   if (!allOk && tried) {
-    hintAll.style.display = "block";
+    hintQuestions.style.display = "block";
     btn.classList.remove("btn-primary");
     btn.classList.add("btn-secondary");
+    btn.disabled = true;
   } else {
-    hintAll.style.display = "none";
+    hintQuestions.style.display = "none";
     btn.classList.remove("btn-secondary");
     btn.classList.add("btn-primary");
+    btn.disabled = false;
   }
 
   btn.textContent = submitted ? "Herbereken resultaten" : "Toon resultaten";
@@ -342,6 +378,7 @@ function renderDimensionResults(results) {
     }
     pill.className = pillClass;
     pill.textContent = pillText;
+    pill.setAttribute("aria-label", `Classificatie: ${pillText}`);
 
     topRow.appendChild(left);
     topRow.appendChild(pill);
@@ -354,6 +391,13 @@ function renderDimensionResults(results) {
     wrap.appendChild(advice);
     container.appendChild(wrap);
   });
+}
+
+function generateTextSummary(results) {
+  const summaryParts = results.map(r => 
+    `${r.label}: niveau ${r.level} (${maturityLabel(r.level)})`
+  );
+  return `Uw volwassenheidsprofiel: ${summaryParts.join(", ")}.`;
 }
 
 async function notifyBackendOnce(results) {
@@ -374,9 +418,16 @@ async function notifyBackendOnce(results) {
     return;
   }
   
-  // Skip notification if no email is configured
+  // Skip notification if no email is configured or user hasn't provided contact info
   if (!NOTIFICATION_EMAIL) {
     console.info("Backend notification skipped: VITE_NOTIFICATION_EMAIL not configured");
+    notified = true;
+    return;
+  }
+  
+  // Only send notification if user provided contact info
+  if (!contactInfoProvided()) {
+    console.info("Backend notification skipped: User did not provide contact information");
     notified = true;
     return;
   }
@@ -575,6 +626,10 @@ function onSubmitClick() {
   renderRadar(results);
   renderDimensionResults(results);
   document.getElementById("narrative-text").textContent = narrativeFromResults(results);
+  
+  // Generate and display text summary for screen readers
+  const textSummary = generateTextSummary(results);
+  document.getElementById("text-summary-content").textContent = textSummary;
 
   notifyBackendOnce(results).catch(() => {});
   updateValidationUi();
@@ -583,9 +638,43 @@ function onSubmitClick() {
     .scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
+function setupPrivacyModal() {
+  const modal = document.getElementById("privacy-modal");
+  const privacyLink = document.getElementById("privacy-link");
+  const closeBtn = document.getElementById("close-privacy-modal");
+  
+  privacyLink.addEventListener("click", (e) => {
+    e.preventDefault();
+    modal.style.display = "flex";
+    closeBtn.focus();
+  });
+  
+  closeBtn.addEventListener("click", () => {
+    modal.style.display = "none";
+    privacyLink.focus();
+  });
+  
+  // Close modal on Escape key
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && modal.style.display === "flex") {
+      modal.style.display = "none";
+      privacyLink.focus();
+    }
+  });
+  
+  // Close modal when clicking outside
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) {
+      modal.style.display = "none";
+      privacyLink.focus();
+    }
+  });
+}
+
 function init() {
   buildQuestionnaire();
   updateProgress();
+  setupPrivacyModal();
 
   document.getElementById("name").addEventListener("input", onContactChange);
   document.getElementById("email").addEventListener("input", onContactChange);

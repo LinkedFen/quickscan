@@ -5,7 +5,10 @@ describe('index.html structure', () => {
   let documentRoot;
 
   beforeAll(() => {
-    const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+    const html = fs.readFileSync(
+      path.join(__dirname, '..', 'index.html'),
+      'utf8'
+    );
     const dom = new DOMParser().parseFromString(html, 'text/html');
     documentRoot = dom;
   });

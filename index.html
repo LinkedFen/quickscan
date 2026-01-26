@@ -1,1125 +1,517 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="nl">
-<head>
-  <meta charset="UTF-8" />
-  <title>Quick Scan Logistieke Ketenvolwassenheid</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <!-- Externe libraries -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-  <style>
-    :root {
-      --primary: #4f46e5;   /* indigo-600 */
-      --primary-dark: #4338ca;
-      --secondary: #e5e7eb;
-      --bg: #f3f4f6;
-      --text: #111827;
-      --muted: #6b7280;
-      --border: #e5e7eb;
-      --danger: #f97373;
-      --card-radius: 18px;
-      --shadow-soft: 0 10px 30px rgba(15, 23, 42, 0.06);
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: var(--bg);
-      color: var(--text);
-    }
-
-    .app {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 24px 16px 48px;
-    }
-
-    header {
-      margin-bottom: 24px;
-    }
-
-    header h1 {
-      font-size: 1.9rem;
-      margin: 0;
-      color: #0f172a;
-    }
-
-    header p {
-      margin-top: 8px;
-      max-width: 800px;
-      color: var(--muted);
-      font-size: 0.95rem;
-      line-height: 1.5;
-    }
-
-    .section-title {
-      font-size: 1.25rem;
-      font-weight: 600;
-      margin-bottom: 12px;
-      color: #0f172a;
-    }
-
-    .card {
-      background: #ffffff;
-      border-radius: var(--card-radius);
-      border: 1px solid var(--border);
-      padding: 20px 22px;
-      box-shadow: var(--shadow-soft);
-      margin-bottom: 18px;
-    }
-
-    .grid-2 {
-      display: grid;
-      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.1fr);
-      gap: 18px;
-    }
-
-    .grid-2-narrow {
-      display: grid;
-      grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
-      gap: 18px;
-      align-items: stretch;
-    }
-
-    .field-label {
-      display: block;
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: #111827;
-      margin-bottom: 4px;
-    }
-
-    .text-input {
-      width: 100%;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      padding: 8px 10px;
-      font-size: 0.9rem;
-      outline: none;
-      transition: border-color 0.15s ease, box-shadow 0.15s ease;
-    }
-
-    .text-input:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 1px rgba(79, 70, 229, 0.15);
-    }
-
-    .text-input.error {
-      border-color: #fb7185;
-      box-shadow: 0 0 0 1px rgba(248, 113, 113, 0.3);
-    }
-
-    .error-text {
-      font-size: 0.75rem;
-      color: #b91c1c;
-      margin-top: 3px;
-    }
-
-    .checkbox-row {
-      display: flex;
-      align-items: flex-start;
-      gap: 8px;
-      font-size: 0.85rem;
-      color: #374151;
-      margin-top: 10px;
-    }
-
-    .checkbox-row input[type="checkbox"] {
-      margin-top: 2px;
-    }
-
-    .checkbox-row .error-text {
-      margin-left: 24px;
-    }
-
-    .dimension-card h3 {
-      font-size: 1rem;
-      margin: 0 0 8px;
-      color: #111827;
-    }
-
-    .question-text {
-      font-size: 0.9rem;
-      font-weight: 500;
-      margin: 10px 0 6px;
-    }
-
-    .scale-list {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-    }
-
-    .scale-item {
-      margin-bottom: 6px;
-    }
-
-    .scale-item label {
-      display: flex;
-      align-items: flex-start;
-      gap: 8px;
-      cursor: pointer;
-      font-size: 0.85rem;
-      line-height: 1.4;
-    }
-
-    .scale-item input[type="radio"] {
-      margin-top: 2px;
-    }
-
-    .btn {
-      border: none;
-      border-radius: 999px;
-      padding: 8px 16px;
-      font-size: 0.9rem;
-      font-weight: 500;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      transition: background-color 0.15s ease, box-shadow 0.15s ease, transform 0.05s ease;
-    }
-
-    .btn-primary {
-      background: var(--primary);
-      color: #ffffff;
-      box-shadow: 0 9px 20px rgba(79, 70, 229, 0.3);
-    }
-
-    .btn-primary:hover {
-      background: var(--primary-dark);
-      box-shadow: 0 12px 24px rgba(79, 70, 229, 0.4);
-      transform: translateY(-1px);
-    }
-
-    .btn-secondary {
-      background: #e5e7eb;
-      color: #374151;
-    }
-
-    .btn-secondary:hover {
-      background: #d1d5db;
-    }
-
-    .btn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-      box-shadow: none;
-      transform: none;
-    }
-
-    .actions-row {
-      margin-top: 16px;
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .hint-text {
-      font-size: 0.8rem;
-      color: var(--muted);
-    }
-
-    .hint-text.errorish {
-      color: #b91c1c;
-    }
-
-    .status-banner {
-      display: none;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 10px;
-      border-radius: 10px;
-      font-size: 0.85rem;
-      border: 1px solid transparent;
-    }
-
-    .status-banner.success {
-      display: inline-flex;
-      background: #ecfdf3;
-      color: #166534;
-      border-color: #bbf7d0;
-    }
-
-    .status-banner.error {
-      display: inline-flex;
-      background: #fef2f2;
-      color: #b91c1c;
-      border-color: #fecdd3;
-    }
-
-    .status-banner.warning {
-      display: inline-flex;
-      background: #fffbeb;
-      color: #92400e;
-      border-color: #fcd34d;
-    }
-
-    #results-section {
-      margin-top: 24px;
-      display: none;
-    }
-
-    .pill {
-      display: inline-flex;
-      align-items: center;
-      border-radius: 999px;
-      font-size: 0.7rem;
-      font-weight: 600;
-      padding: 3px 8px;
-      white-space: nowrap;
-    }
-
-    .pill-basis {
-      background: #fee2e2;
-      color: #b91c1c;
-    }
-
-    .pill-midden {
-      background: #fef3c7;
-      color: #92400e;
-    }
-
-    .pill-gevorderd {
-      background: #dcfce7;
-      color: #166534;
-    }
-
-    .result-dimension {
-      padding-bottom: 10px;
-      border-bottom: 1px solid var(--border);
-      margin-bottom: 10px;
-    }
-
-    .result-dimension:last-child {
-      border-bottom: none;
-      margin-bottom: 0;
-      padding-bottom: 0;
-    }
-
-    .result-dimension h4 {
-      margin: 0;
-      font-size: 0.95rem;
-    }
-
-    .result-dimension p {
-      margin: 3px 0;
-      font-size: 0.8rem;
-      color: var(--muted);
-    }
-
-    .advice-text {
-      margin-top: 4px;
-      font-size: 0.85rem;
-      line-height: 1.5;
-      color: #374151;
-    }
-
-    footer {
-      margin-top: 24px;
-      font-size: 0.7rem;
-      color: var(--muted);
-    }
-
-    @media (max-width: 900px) {
-      .grid-2 {
-        grid-template-columns: minmax(0, 1fr);
+  <head>
+    <meta charset="UTF-8" />
+    <title>Quick Scan Logistieke Ketenvolwassenheid</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Externe libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <style>
+      :root {
+        --primary: #4f46e5; /* indigo-600 */
+        --primary-dark: #4338ca;
+        --secondary: #e5e7eb;
+        --bg: #f3f4f6;
+        --text: #111827;
+        --muted: #6b7280;
+        --border: #e5e7eb;
+        --danger: #f97373;
+        --card-radius: 18px;
+        --shadow-soft: 0 10px 30px rgba(15, 23, 42, 0.06);
       }
-      .grid-2-narrow {
-        grid-template-columns: minmax(0, 1fr);
-      }
-    }
 
-    @media (max-width: 640px) {
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family:
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          'Segoe UI',
+          sans-serif;
+        background: var(--bg);
+        color: var(--text);
+      }
+
       .app {
-        padding: 16px 12px 32px;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 24px 16px 48px;
       }
+
+      header {
+        margin-bottom: 24px;
+      }
+
       header h1 {
-        font-size: 1.5rem;
+        font-size: 1.9rem;
+        margin: 0;
+        color: #0f172a;
       }
-    }
-  </style>
-</head>
-<body>
-<div class="app">
-  <header>
-    <h1>Quick Scan Logistieke Ketenvolwassenheid</h1>
-    <p>
-      Beantwoord <strong>2 vragen per dimensie</strong> en vul uw <strong>naam</strong> en
-      <strong>e-mailadres</strong> in. Wij schalen uw organisatie op een volwassenheidsniveau (1–5) per dimensie en
-      tonen een visual met gerichte adviezen om naar het volgende niveau door te groeien. Resultaten worden pas zichtbaar
-      na het volledig invullen.
-    </p>
-  </header>
 
-  <main>
-    <!-- Vragenlijst -->
-    <section aria-label="Vragenlijst">
-      <h2 class="section-title">Vragenlijst</h2>
+      header p {
+        margin-top: 8px;
+        max-width: 800px;
+        color: var(--muted);
+        font-size: 0.95rem;
+        line-height: 1.5;
+      }
 
-      <div class="card">
-        <h3 style="font-size:1rem;margin:0 0 10px;font-weight:600;">Contactgegevens</h3>
-        <div class="grid-2">
-          <div>
-            <label for="name" class="field-label">Naam</label>
-            <input id="name" type="text" placeholder="Voor- en achternaam" class="text-input" />
-            <div id="error-name" class="error-text" style="display:none;"></div>
-          </div>
-          <div>
-            <label for="email" class="field-label">E-mailadres</label>
-            <input id="email" type="email" placeholder="naam@organisatie.nl" class="text-input" />
-            <div id="error-email" class="error-text" style="display:none;"></div>
-          </div>
-        </div>
-        <label class="checkbox-row">
-          <input id="consent" type="checkbox" />
-          <span>Ik ga akkoord dat Supply Value contact opneemt om de resultaten op te volgen.</span>
-        </label>
-        <div id="error-consent" class="error-text" style="display:none;margin-top:4px;">
-          Accepteer dit om de resultaten te bekijken.
-        </div>
-      </div>
+      .section-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 12px;
+        color: #0f172a;
+      }
 
-      <div id="dimensions-container" class="grid-2"></div>
+      .card {
+        background: #ffffff;
+        border-radius: var(--card-radius);
+        border: 1px solid var(--border);
+        padding: 20px 22px;
+        box-shadow: var(--shadow-soft);
+        margin-bottom: 18px;
+      }
 
-      <div class="actions-row">
-        <button id="show-results" type="button" class="btn btn-secondary">
-          Toon resultaten
-        </button>
-        <div id="notify-status" class="status-banner" role="status" aria-live="polite"></div>
-        <span id="progress-text" class="hint-text">0 van 10 vragen beantwoord.</span>
-      </div>
-      <div id="hint-all" class="hint-text errorish" style="margin-top:4px;display:none;">
-        Beantwoord alle vragen, vul naam &amp; e-mail in en accepteer contactopname om resultaten te tonen.
-      </div>
-    </section>
+      .grid-2 {
+        display: grid;
+        grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.1fr);
+        gap: 18px;
+      }
 
-    <!-- Resultaten -->
-    <section id="results-section" aria-label="Resultaten">
-      <h2 class="section-title">Uw volwassenheidsprofiel (1–5) &amp; advies</h2>
+      .grid-2-narrow {
+        display: grid;
+        grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+        gap: 18px;
+        align-items: stretch;
+      }
 
-      <div id="results-grid" class="grid-2-narrow">
-        <div class="card">
-          <h3 style="font-size:0.95rem;margin:0 0 10px;font-weight:600;">Interactieve visualisatie</h3>
-          <div style="height:320px;">
-            <canvas id="radarChart"></canvas>
-          </div>
-        </div>
+      .field-label {
+        display: block;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #111827;
+        margin-bottom: 4px;
+      }
 
-        <div class="card">
-          <h3 style="font-size:0.95rem;margin:0 0 10px;font-weight:600;">Advies: stap naar het volgende niveau</h3>
-          <div id="dimension-results"></div>
-        </div>
-      </div>
+      .text-input {
+        width: 100%;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        padding: 8px 10px;
+        font-size: 0.9rem;
+        outline: none;
+        transition:
+          border-color 0.15s ease,
+          box-shadow 0.15s ease;
+      }
 
-      <div class="card" style="margin-top:18px;">
-        <h3 style="font-size:0.95rem;margin:0 0 8px;font-weight:600;">Advies (samenvatting)</h3>
-        <p id="narrative-text" style="font-size:0.9rem;line-height:1.6;color:#374151;margin:0;"></p>
-      </div>
+      .text-input:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 1px rgba(79, 70, 229, 0.15);
+      }
 
-      <div class="actions-row">
-        <button id="download-pdf" type="button" class="btn btn-primary">
-          Download PDF
-        </button>
-        <span class="hint-text">De PDF bevat de visual en samenvatting op A4-formaat.</span>
-      </div>
-    </section>
+      .text-input.error {
+        border-color: #fb7185;
+        box-shadow: 0 0 0 1px rgba(248, 113, 113, 0.3);
+      }
 
-    <footer>
-      © Supply Value – Quick Scan Logistieke Ketenvolwassenheid. Deze tool positioneert uw organisatie op vijf dimensies
-      en geeft richting aan de volgende stap. Voor een verdiepende nulmeting en onderbouwde ROI-case kan een uitgebreide
-      assessment worden uitgevoerd.
-    </footer>
-  </main>
-</div>
+      .error-text {
+        font-size: 0.75rem;
+        color: #b91c1c;
+        margin-top: 3px;
+      }
 
-<script>
-  // Optioneel logo in PDF (base64 PNG). Laat leeg als niet nodig.
-  const SUPPLY_VALUE_LOGO = ""; // bijv: "data:image/png;base64,AAA..."
+      .checkbox-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        font-size: 0.85rem;
+        color: #374151;
+        margin-top: 10px;
+      }
 
-  // --- Domeinmodel overgenomen uit het React-artifact ---
-  const DIMENSIONS = [
-    {
-      key: "warehouse",
-      label: "Magazijn & Voorraadbeheer",
-      q1: "Hoe worden voorraden en tellingen beheerd?",
-      q2: "Welke mate van systeemondersteuning is aanwezig?",
-      advice: {
-        1: "Leg basisprocessen vast (tellen, min/max), creëer één bron van waarheid en start met servicegraad & voorraadnauwkeurigheid meten.",
-        2: "Formaliseer werkwijzen, borg datakwaliteit en start eenvoudige rapportages. Zet stap naar WMS-configuratie en ABC/XYZ-segmentatie.",
-        3: "Koppel WMS aan ERP, analyseer rotatie & drempelwaarden periodiek en betrek stakeholders bij structurele verbeteringen.",
-        4: "Introduceer voorspellend replenishment en ketenafstemming op voorraaddoelstellingen; werk naar realtime zicht en exception-based sturing.",
-        5: "Borg predictive & automatische aanvulling, schaal best practices ketenbreed en innoveer met IoT/AI (continu verbeteren)."
-      },
-      q1Scale: [
-        "Ad-hoc, incidentele tellingen, afwijkingen achteraf",
-        "Basisinventarisatie, structurele analyse per periode",
-        "Gestandaardiseerd met vaste cycli en KPI’s",
-        "Realtime inzicht per locatie, afwijkingen direct",
-        "Voorspellend & drempelgestuurd, autonoom bijsturen"
-      ],
-      q2Scale: [
-        "Losse Excelbestanden zonder compleet overzicht",
-        "Basis-WMS zonder koppelingen",
-        "Implementatie WMS-ERP koppeling",
-        "Geïntegreerd WMS met dashboards",
-        "Geavanceerd, datagedreven & ketenkoppelingen"
-      ]
-    },
-    {
-      key: "transport",
-      label: "Transport & Distributie",
-      q1: "Hoe wordt transport gepland en aangestuurd?",
-      q2: "Welke zichtbaarheid/optimalisatie is beschikbaar?",
-      advice: {
-        1: "Wijs een transportplanner aan, standaardiseer weekplanning en start met OTIF/leverbetrouwbaarheid meten.",
-        2: "Implementeer basis-TMS, definieer KPI-deck en maak prestaties zichtbaar voor operatie en management.",
-        3: "Integreer TMS end-to-end, voer route-optimalisatie in en borg vaste procesafspraken met 3PL/4PL.",
-        4: "Werk met realtime track & trace, exception management en gezamenlijke verbeterborden met partners.",
-        5: "Schaal naar netwerk-optimalisatie, gezamenlijke planning en continue verbetering over partners heen."
-      },
-      q1Scale: [
-        "Ad-hoc, firefighting en spoedritten",
-        "Korte-termijnplanning, sporadische KPI’s",
-        "Structureel met KPI’s en TMS in gebruik",
-        "3PL/4PL-integratie in TMS (realtime)",
-        "Voorspellende ETA & realtime route-optimalisatie"
-      ],
-      q2Scale: [
-        "Beperkt zicht, achteraf rapporteren",
-        "Basale statusupdates",
-        "Dashboards per route/klant",
-        "Realtime 3PL/4PL-integratie",
-        "ETA-alerts & realtime optimalisatie"
-      ]
-    },
-    {
-      key: "planning",
-      label: "Planning",
-      q1: "Hoe vindt afstemming tussen sales, operations en logistiek plaats?",
-      q2: "Hoe wordt data geïntegreerd in besluitvorming?",
-      advice: {
-        1: "Start maandelijkse S&OP met vaste agenda, rollen en één dataset (single source of truth).",
-        2: "Standaardiseer KPI’s (forecast accuracy/bias, OTIF) en borg dat elke meeting besluiten en acties oplevert.",
-        3: "Verrijk S&OP met externe signalen (klantforecast/POS), voer scenario-analyse in en verkort besluitcycli.",
-        4: "Schakel naar IBP: betrek Finance en link tactische beslissingen aan strategische doelen en capaciteiten.",
-        5: "Continue verbeterende voorloper die kennis deelt met partners voor optimalisatie in de keten."
-      },
-      q1Scale: [
-        "Geen vaste afstemming, ad-hoc overleg",
-        "Periodiek overleg op ervaring",
-        "Gestandaardiseerd S&OP-ritme",
-        "S&OP met externe data en duidelijke besluiten",
-        "Integrated Business Planning"
-      ],
-      q2Scale: [
-        "Ad-hoc of op gevoel",
-        "Basisdata, enkele historische analyse",
-        "Kern-KPI’s en trendanalyses",
-        "Scenario’s met markt-/klantdata",
-        "Realtime integratie & financiële koppeling"
-      ]
-    },
-    {
-      key: "itdata",
-      label: "IT & Datagedreven Werken",
-      q1: "Hoe is de datagrondslag en rapportage ingericht?",
-      q2: "Welke mate van systeemintegratie/analytics is er?",
-      advice: {
-        1: "Centraliseer kerngegevens en start datakwaliteit; maak eenvoudige, consistente rapportages.",
-        2: "Kies standaarden en koppel eerste systemen (ERP↔WMS/TMS); digitaliseer tijdrovende stappen.",
-        3: "Automatiseer managementdashboards en vergroot adoptie; borg master-data governance.",
-        4: "Verbind processen end-to-end; stuur beslissingen datagedreven en deel inzichten verantwoord.",
-        5: "Integreer realtime met partners; AI voor voorspelling en exception-based beslissingen (human-in-the-loop)."
-      },
-      q1Scale: [
-        "Excel-eilandjes, handmatige rapportage",
-        "Basisdatamodel, enkele standaarden",
-        "Standaard periodieke analyses in centrale KPI-dashboards",
-        "Realtime inzichten voor besluitvorming",
-        "Automated workflows/AI-predictive analytics"
-      ],
-      q2Scale: [
-        "Losse systemen, geen koppelingen",
-        "Enkele koppelingen",
-        "ERP/WMS/TMS grotendeels gekoppeld",
-        "End-to-end integratie intern",
-        "Automated workflows & AI-integratie"
-      ]
-    },
-    {
-      key: "collab",
-      label: "Ketenregie & Samenwerking",
-      q1: "Hoe werken jullie met leveranciers/klanten/3PL samen?",
-      q2: "In welke mate bestaan gedeelde KPI’s en gezamenlijke besluitvorming?",
-      advice: {
-        1: "Start periodiek partneroverleg en deel basisinformatie om vertrouwen op te bouwen.",
-        2: "Leg gezamenlijke doelstellingen vast en formaliseer overlegstructuren.",
-        3: "Introduceer gedeelde processen en KPI’s; intensiveer data-integratie met kernpartners.",
-        4: "Bouw strategische partnerships met gezamenlijke investeringen, transparantie en governance.",
-        5: "Regisseer de keten als ecosysteem met realtime informatie en continue verbetering/gain-share."
-      },
-      q1Scale: [
-        "Transactiegericht, ad-hoc afstemming",
-        "Operationele afstemming bij issues",
-        "Structurele info-uitwisseling",
-        "Strategische samenwerkingsprogramma’s",
-        "Ecosysteem met gedeelde data"
-      ],
-      q2Scale: [
-        "Geen gezamenlijke KPI’s",
-        "Incidentele KPI-afspraken",
-        "KPI’s op OTIF/voorraad/kosten",
-        "Gezamenlijke governance en besluiten",
-        "Volledig ketenregime & slimme contracten"
-      ]
-    }
-  ];
+      .checkbox-row input[type='checkbox'] {
+        margin-top: 2px;
+      }
 
-  // --- State ---
-  const answers = {};
-  DIMENSIONS.forEach(d => { answers[d.key] = { q1: null, q2: null }; });
+      .checkbox-row .error-text {
+        margin-left: 24px;
+      }
 
-  let tried = false;
-  let submitted = false;
-  let notified = false;
-  let radarChart = null;
+      .dimension-card h3 {
+        font-size: 1rem;
+        margin: 0 0 8px;
+        color: #111827;
+      }
 
-  // --- Helpers ---
-  function emailValid(email) {
-    const e = email.trim();
-    return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i.test(e);
-  }
+      .question-text {
+        font-size: 0.9rem;
+        font-weight: 500;
+        margin: 10px 0 6px;
+      }
 
-  function allQuestionsAnswered() {
-    return DIMENSIONS.every(d => answers[d.key].q1 && answers[d.key].q2);
-  }
+      .scale-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
 
-  function allAnsweredAndValid() {
-    const name = document.getElementById("name").value.trim();
-    const email = document.getElementById("email").value.trim();
-    const consent = document.getElementById("consent").checked;
-    return allQuestionsAnswered() && name && emailValid(email) && consent;
-  }
+      .scale-item {
+        margin-bottom: 6px;
+      }
 
-  function levelFromValues(q1, q2) {
-    const v1 = q1 || 0;
-    const v2 = q2 || 0;
-    const avg = (v1 + v2) / 2;
-    const lvl = Math.round(avg || 1);
-    return Math.max(1, Math.min(5, lvl));
-  }
+      .scale-item label {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        line-height: 1.4;
+      }
 
-  function calcResults() {
-    return DIMENSIONS.map(d => {
-      const q1 = answers[d.key].q1;
-      const q2 = answers[d.key].q2;
-      const level = levelFromValues(q1, q2);
-      const next = level >= 5 ? 5 : level + 1;
-      return {
-        key: d.key,
-        label: d.label,
-        level,
-        nextAdvice: d.advice[next]
-      };
-    });
-  }
+      .scale-item input[type='radio'] {
+        margin-top: 2px;
+      }
 
-  function maturityLabel(level) {
-    if (level <= 1) return "Niveau 1 – Ad-hoc";
-    if (level === 2) return "Niveau 2 – Basis";
-    if (level === 3) return "Niveau 3 – Gestandaardiseerd";
-    if (level === 4) return "Niveau 4 – Geïntegreerd";
-    return "Niveau 5 – Vooruitstrevend";
-  }
+      .btn {
+        border: none;
+        border-radius: 999px;
+        padding: 8px 16px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition:
+          background-color 0.15s ease,
+          box-shadow 0.15s ease,
+          transform 0.05s ease;
+      }
 
-  function narrativeFromResults(results) {
-    const low = results.filter(r => r.level <= 3);
-    const high = results.filter(r => r.level >= 4);
-    const focusDims = low.map(l => l.label).join(", ");
-    const strengths = high.map(h => h.label).join(", ");
+      .btn-primary {
+        background: var(--primary);
+        color: #ffffff;
+        box-shadow: 0 9px 20px rgba(79, 70, 229, 0.3);
+      }
 
-    const opening =
-      "Uw quick scan laat een helder vertrekpunt zien voor gerichte waardecreatie in de logistieke keten. " +
-      (strengths
-        ? `Sterke fundamenten zien we op ${strengths}. `
-        : "Er liggen kansen over de volle breedte van de keten. ");
+      .btn-primary:hover {
+        background: var(--primary-dark);
+        box-shadow: 0 12px 24px rgba(79, 70, 229, 0.4);
+        transform: translateY(-1px);
+      }
 
-    const body = low.length
-      ? `De grootste versnellers liggen bij ${focusDims}. Hier adviseren we door te groeien naar het volgende niveau door standaardisatie, zichtbaarheid en gedeelde KPI’s te versterken. Integreer systemen waar mogelijk (ERP–WMS–TMS), verbeter datakwaliteit en richt een vast S&OP-ritme in met één dataset. In transport en samenwerking leveren realtime status, route-optimalisatie en partneroverleg met gezamenlijke KPI’s doorgaans meetbare winst op (OTIF omhoog, minder spoed, lagere voorraadwaarde). `
-      : "U opereert op hoog niveau; focus nu op ketenbrede integratie en voorspellende sturing. Versterk realtime data-deling met partners en schaal scenario-gestuurde besluitvorming (IBP) met finance en strategische leveranciers/3PL’s. ";
+      .btn-secondary {
+        background: #e5e7eb;
+        color: #374151;
+      }
 
-    const close =
-      "Concreet betekent dit: benut uw sterke punten als hefboom en pak per dimensie één stap omhoog. Daarmee verhoogt u leverbetrouwbaarheid en wendbaarheid, verlaagt u kosten en creëert u een duurzaam concurrentievoordeel. Wij helpen u desgewenst bij het prioriteren en borgen van deze stappen.";
+      .btn-secondary:hover {
+        background: #d1d5db;
+      }
 
-    const text = (opening + body + close).trim();
-    const words = text.split(" ");
-    const limit = 230;
-    if (words.length <= limit) return text;
-    return words.slice(0, limit).join(" ") + "…";
-  }
+      .btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        box-shadow: none;
+        transform: none;
+      }
 
-  function updateProgress() {
-    const answeredCount = DIMENSIONS.reduce((acc, d) => {
-      return acc + (answers[d.key].q1 ? 1 : 0) + (answers[d.key].q2 ? 1 : 0);
-    }, 0);
-    const total = DIMENSIONS.length * 2;
-    const progressText = document.getElementById("progress-text");
-    progressText.textContent = `${answeredCount} van ${total} vragen beantwoord.`;
-  }
+      .actions-row {
+        margin-top: 16px;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px;
+      }
 
-  function updateValidationUi() {
-    const nameEl = document.getElementById("name");
-    const emailEl = document.getElementById("email");
-    const consentEl = document.getElementById("consent");
-    const name = nameEl.value.trim();
-    const email = emailEl.value.trim();
-    const consent = consentEl.checked;
+      .hint-text {
+        font-size: 0.8rem;
+        color: var(--muted);
+      }
 
-    const nameError = document.getElementById("error-name");
-    const emailError = document.getElementById("error-email");
-    const consentError = document.getElementById("error-consent");
+      .hint-text.errorish {
+        color: #b91c1c;
+      }
 
-    if (tried && !name) {
-      nameEl.classList.add("error");
-      nameError.textContent = "Vul uw naam in.";
-      nameError.style.display = "block";
-    } else {
-      nameEl.classList.remove("error");
-      nameError.textContent = "";
-      nameError.style.display = "none";
-    }
+      .status-banner {
+        display: none;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 10px;
+        border-radius: 10px;
+        font-size: 0.85rem;
+        border: 1px solid transparent;
+      }
 
-    if (tried && !emailValid(email)) {
-      emailEl.classList.add("error");
-      emailError.textContent = "Gebruik een geldig e-mailadres (bijv. naam@domein.ext).";
-      emailError.style.display = "block";
-    } else {
-      emailEl.classList.remove("error");
-      emailError.textContent = "";
-      emailError.style.display = "none";
-    }
+      .status-banner.success {
+        display: inline-flex;
+        background: #ecfdf3;
+        color: #166534;
+        border-color: #bbf7d0;
+      }
 
-    if (tried && !consent) {
-      consentError.style.display = "block";
-    } else {
-      consentError.style.display = "none";
-    }
+      .status-banner.error {
+        display: inline-flex;
+        background: #fef2f2;
+        color: #b91c1c;
+        border-color: #fecdd3;
+      }
 
-    const allOk = allAnsweredAndValid();
-    const hintAll = document.getElementById("hint-all");
-    const btn = document.getElementById("show-results");
+      .status-banner.warning {
+        display: inline-flex;
+        background: #fffbeb;
+        color: #92400e;
+        border-color: #fcd34d;
+      }
 
-    if (!allOk && tried) {
-      hintAll.style.display = "block";
-      btn.classList.remove("btn-primary");
-      btn.classList.add("btn-secondary");
-    } else {
-      hintAll.style.display = "none";
-      btn.classList.remove("btn-secondary");
-      btn.classList.add("btn-primary");
-    }
+      #results-section {
+        margin-top: 24px;
+        display: none;
+      }
 
-    btn.textContent = submitted ? "Herbereken resultaten" : "Toon resultaten";
-  }
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        padding: 3px 8px;
+        white-space: nowrap;
+      }
 
-  function renderRadar(results) {
-    const ctx = document.getElementById("radarChart").getContext("2d");
-    const labels = results.map(r => r.label);
-    const data = results.map(r => r.level);
+      .pill-basis {
+        background: #fee2e2;
+        color: #b91c1c;
+      }
 
-    if (radarChart) radarChart.destroy();
+      .pill-midden {
+        background: #fef3c7;
+        color: #92400e;
+      }
 
-    radarChart = new Chart(ctx, {
-      type: "radar",
-      data: {
-        labels,
-        datasets: [
-          {
-            label: "Niveau",
-            data,
-            backgroundColor: "rgba(79,70,229,0.3)",
-            borderColor: "#4f46e5",
-            borderWidth: 2,
-            pointBackgroundColor: "#4f46e5",
-            pointRadius: 3
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        scales: {
-          r: {
-            beginAtZero: true,
-            min: 0,
-            max: 5,
-            ticks: {
-              stepSize: 1,
-              showLabelBackdrop: false
-            },
-            grid: {
-              color: "rgba(148,163,184,0.4)"
-            },
-            angleLines: {
-              color: "rgba(148,163,184,0.4)"
-            },
-            pointLabels: {
-              font: { size: 10 }
-            }
-          }
-        },
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            callbacks: {
-              label: ctx => "Niveau " + ctx.parsed.r
-            }
-          }
+      .pill-gevorderd {
+        background: #dcfce7;
+        color: #166534;
+      }
+
+      .result-dimension {
+        padding-bottom: 10px;
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 10px;
+      }
+
+      .result-dimension:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+      }
+
+      .result-dimension h4 {
+        margin: 0;
+        font-size: 0.95rem;
+      }
+
+      .result-dimension p {
+        margin: 3px 0;
+        font-size: 0.8rem;
+        color: var(--muted);
+      }
+
+      .advice-text {
+        margin-top: 4px;
+        font-size: 0.85rem;
+        line-height: 1.5;
+        color: #374151;
+      }
+
+      footer {
+        margin-top: 24px;
+        font-size: 0.7rem;
+        color: var(--muted);
+      }
+
+      @media (max-width: 900px) {
+        .grid-2 {
+          grid-template-columns: minmax(0, 1fr);
         }
-      }
-    });
-  }
-
-  function renderDimensionResults(results) {
-    const container = document.getElementById("dimension-results");
-    container.innerHTML = "";
-    results.forEach(r => {
-      const wrap = document.createElement("div");
-      wrap.className = "result-dimension";
-
-      const topRow = document.createElement("div");
-      topRow.style.display = "flex";
-      topRow.style.justifyContent = "space-between";
-      topRow.style.gap = "8px";
-      topRow.style.alignItems = "flex-start";
-
-      const left = document.createElement("div");
-      const title = document.createElement("h4");
-      title.textContent = r.label;
-      const lvl = document.createElement("p");
-      lvl.innerHTML =
-        'Huidig niveau: <span style="font-weight:600;">' +
-        r.level +
-        "</span> (" +
-        maturityLabel(r.level) +
-        ")";
-      left.appendChild(title);
-      left.appendChild(lvl);
-
-      const pill = document.createElement("span");
-      let pillClass = "pill pill-basis";
-      let pillText = "Basis";
-      if (r.level >= 4) {
-        pillClass = "pill pill-gevorderd";
-        pillText = "Gevorderd";
-      } else if (r.level === 3) {
-        pillClass = "pill pill-midden";
-        pillText = "Midden";
-      }
-      pill.className = pillClass;
-      pill.textContent = pillText;
-
-      topRow.appendChild(left);
-      topRow.appendChild(pill);
-
-      const advice = document.createElement("div");
-      advice.className = "advice-text";
-      advice.textContent = r.nextAdvice;
-
-      wrap.appendChild(topRow);
-      wrap.appendChild(advice);
-      container.appendChild(wrap);
-    });
-  }
-
-  async function notifyBackendOnce(results) {
-    const statusEl = document.getElementById("notify-status");
-    const setStatus = (message, variant) => {
-      if (!statusEl) return;
-      if (!message) {
-        statusEl.textContent = "";
-        statusEl.className = "status-banner";
-        return;
-      }
-      statusEl.textContent = message;
-      statusEl.className = `status-banner ${variant}`;
-    };
-
-    if (notified) {
-      setStatus("Resultaten verstuurd", "success");
-      return;
-    }
-    const name = document.getElementById("name").value.trim();
-    const email = document.getElementById("email").value.trim();
-    const node = document.getElementById("results-grid");
-    if (!node) return;
-
-    try {
-      setStatus("", "");
-      const canvas = await html2canvas(node, { scale: 2 });
-      const imgData = canvas.toDataURL("image/png");
-      const { jsPDF } = window.jspdf;
-      const pdf = new jsPDF({ unit: "pt", format: "a4" });
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      const margin = 36;
-      const usable = pageWidth - margin * 2;
-
-      if (SUPPLY_VALUE_LOGO) {
-        try {
-          const logoImg = new Image();
-          logoImg.src = SUPPLY_VALUE_LOGO;
-          await logoImg.decode();
-          pdf.addImage(logoImg, "PNG", margin, 20, 120, 32);
-        } catch (e) {
-          console.warn("Logo kon niet geladen worden", e);
+        .grid-2-narrow {
+          grid-template-columns: minmax(0, 1fr);
         }
       }
 
-      pdf.setFontSize(14);
-      pdf.text("Quick Scan Logistieke Ketenvolwassenheid", margin, 72);
-      pdf.setFontSize(10);
-      const dt = new Date().toLocaleString();
-      pdf.text(`Naam: ${name}  •  E-mail: ${email}  •  Datum: ${dt}`, margin, 88);
-
-      const imgWidth = usable;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      const yStart = 100;
-      pdf.addImage(
-        imgData,
-        "PNG",
-        margin,
-        yStart,
-        imgWidth,
-        Math.min(imgHeight, pageHeight - yStart - 160)
-      );
-
-      const blob = pdf.output("blob");
-      const base64 = await new Promise(resolve => {
-        const fr = new FileReader();
-        fr.onload = () => {
-          const result = String(fr.result || "");
-          const b64 = result.split(",")[1] || "";
-          resolve(b64);
-        };
-        fr.readAsDataURL(blob);
-      });
-
-      const res = await fetch("/api/quickscan-notify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          to: "f.zwaans@supplyvalue.nl",
-          name,
-          email,
-          pdfBase64: `data:application/pdf;base64,${base64}`
-        })
-      });
-
-      if (!res.ok) {
-        throw new Error(`Notificatie mislukt (status ${res.status})`);
+      @media (max-width: 640px) {
+        .app {
+          padding: 16px 12px 32px;
+        }
+        header h1 {
+          font-size: 1.5rem;
+        }
       }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <header>
+        <h1>Quick Scan Logistieke Ketenvolwassenheid</h1>
+        <p>
+          Beantwoord <strong>2 vragen per dimensie</strong> en vul uw
+          <strong>naam</strong> en <strong>e-mailadres</strong> in. Wij schalen
+          uw organisatie op een volwassenheidsniveau (1–5) per dimensie en tonen
+          een visual met gerichte adviezen om naar het volgende niveau door te
+          groeien. Resultaten worden pas zichtbaar na het volledig invullen.
+        </p>
+      </header>
 
-      setStatus("Resultaten verstuurd", "success");
-      notified = true;
-    } catch (e) {
-      console.warn("Notificatie mislukt of endpoint ontbreekt", e);
-      setStatus(
-        "Resultaten worden hier getoond. Backend-notificatie niet beschikbaar.",
-        "warning"
-      );
-      notified = false;
-    }
-  }
+      <main>
+        <!-- Vragenlijst -->
+        <section aria-label="Vragenlijst">
+          <h2 class="section-title">Vragenlijst</h2>
 
-  async function downloadPdf(results) {
-    const node = document.getElementById("results-grid");
-    if (!node) return;
-    const name = document.getElementById("name").value.trim();
-    const email = document.getElementById("email").value.trim();
-    const narrative = document.getElementById("narrative-text").textContent || "";
+          <div class="card">
+            <h3 style="font-size: 1rem; margin: 0 0 10px; font-weight: 600">
+              Contactgegevens
+            </h3>
+            <div class="grid-2">
+              <div>
+                <label for="name" class="field-label">Naam</label>
+                <input
+                  id="name"
+                  type="text"
+                  placeholder="Voor- en achternaam"
+                  class="text-input"
+                />
+                <div
+                  id="error-name"
+                  class="error-text"
+                  style="display: none"
+                ></div>
+              </div>
+              <div>
+                <label for="email" class="field-label">E-mailadres</label>
+                <input
+                  id="email"
+                  type="email"
+                  placeholder="naam@organisatie.nl"
+                  class="text-input"
+                />
+                <div
+                  id="error-email"
+                  class="error-text"
+                  style="display: none"
+                ></div>
+              </div>
+            </div>
+            <label class="checkbox-row">
+              <input id="consent" type="checkbox" />
+              <span
+                >Ik ga akkoord dat Supply Value contact opneemt om de resultaten
+                op te volgen.</span
+              >
+            </label>
+            <div
+              id="error-consent"
+              class="error-text"
+              style="display: none; margin-top: 4px"
+            >
+              Accepteer dit om de resultaten te bekijken.
+            </div>
+          </div>
 
-    const canvas = await html2canvas(node, { scale: 2 });
-    const imgData = canvas.toDataURL("image/png");
-    const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF({ unit: "pt", format: "a4" });
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    const pageHeight = pdf.internal.pageSize.getHeight();
-    const margin = 36;
-    const usable = pageWidth - margin * 2;
+          <div id="dimensions-container" class="grid-2"></div>
 
-    if (SUPPLY_VALUE_LOGO) {
-      try {
-        const logoImg = new Image();
-        logoImg.src = SUPPLY_VALUE_LOGO;
-        await logoImg.decode();
-        pdf.addImage(logoImg, "PNG", margin, 20, 120, 32);
-      } catch (e) {
-        console.warn("Logo kon niet geladen worden", e);
-      }
-    }
+          <div class="actions-row">
+            <button id="show-results" type="button" class="btn btn-secondary">
+              Toon resultaten
+            </button>
+            <div
+              id="notify-status"
+              class="status-banner"
+              role="status"
+              aria-live="polite"
+            ></div>
+            <span id="progress-text" class="hint-text"
+              >0 van 10 vragen beantwoord.</span
+            >
+          </div>
+          <div
+            id="hint-all"
+            class="hint-text errorish"
+            style="margin-top: 4px; display: none"
+          >
+            Beantwoord alle vragen, vul naam &amp; e-mail in en accepteer
+            contactopname om resultaten te tonen.
+          </div>
+        </section>
 
-    pdf.setFontSize(14);
-    pdf.text("Quick Scan Logistieke Ketenvolwassenheid", margin, 72);
-    pdf.setFontSize(10);
-    const dt = new Date().toLocaleString();
-    pdf.text(`Naam: ${name}  •  E-mail: ${email}  •  Datum: ${dt}`, margin, 88);
+        <!-- Resultaten -->
+        <section id="results-section" aria-label="Resultaten">
+          <h2 class="section-title">
+            Uw volwassenheidsprofiel (1–5) &amp; advies
+          </h2>
 
-    const imgWidth = usable;
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
-    const yStart = 100;
-    pdf.addImage(
-      imgData,
-      "PNG",
-      margin,
-      yStart,
-      imgWidth,
-      Math.min(imgHeight, pageHeight - yStart - 160)
-    );
+          <div id="results-grid" class="grid-2-narrow">
+            <div class="card">
+              <h3
+                style="font-size: 0.95rem; margin: 0 0 10px; font-weight: 600"
+              >
+                Interactieve visualisatie
+              </h3>
+              <div style="height: 320px">
+                <canvas id="radarChart"></canvas>
+              </div>
+            </div>
 
-    let narrativeY = yStart + Math.min(imgHeight, pageHeight - yStart - 160) + 20;
-    if (narrativeY > pageHeight - 120) {
-      pdf.addPage();
-      narrativeY = 60;
-    }
-    pdf.setFontSize(12);
-    pdf.text("Advies (samenvatting)", margin, narrativeY);
-    pdf.setFontSize(10);
-    const split = pdf.splitTextToSize(narrative, usable);
-    pdf.text(split, margin, narrativeY + 16);
+            <div class="card">
+              <h3
+                style="font-size: 0.95rem; margin: 0 0 10px; font-weight: 600"
+              >
+                Advies: stap naar het volgende niveau
+              </h3>
+              <div id="dimension-results"></div>
+            </div>
+          </div>
 
-    pdf.save("QuickScan_LogistiekeKetenvolwassenheid.pdf");
-  }
+          <div class="card" style="margin-top: 18px">
+            <h3 style="font-size: 0.95rem; margin: 0 0 8px; font-weight: 600">
+              Advies (samenvatting)
+            </h3>
+            <p
+              id="narrative-text"
+              style="
+                font-size: 0.9rem;
+                line-height: 1.6;
+                color: #374151;
+                margin: 0;
+              "
+            ></p>
+          </div>
 
-  // --- Init UI ---
-  function buildQuestionnaire() {
-    const container = document.getElementById("dimensions-container");
-    container.innerHTML = "";
-    DIMENSIONS.forEach(d => {
-      const card = document.createElement("div");
-      card.className = "card dimension-card";
+          <div class="actions-row">
+            <button id="download-pdf" type="button" class="btn btn-primary">
+              Download PDF
+            </button>
+            <span class="hint-text"
+              >De PDF bevat de visual en samenvatting op A4-formaat.</span
+            >
+          </div>
+        </section>
 
-      const title = document.createElement("h3");
-      title.textContent = d.label;
-      card.appendChild(title);
+        <footer>
+          © Supply Value – Quick Scan Logistieke Ketenvolwassenheid. Deze tool
+          positioneert uw organisatie op vijf dimensies en geeft richting aan de
+          volgende stap. Voor een verdiepende nulmeting en onderbouwde ROI-case
+          kan een uitgebreide assessment worden uitgevoerd.
+        </footer>
+      </main>
+    </div>
 
-      // Vraag 1
-      const q1t = document.createElement("div");
-      q1t.className = "question-text";
-      q1t.textContent = "1) " + d.q1;
-      card.appendChild(q1t);
-
-      const q1ul = document.createElement("ul");
-      q1ul.className = "scale-list";
-      d.q1Scale.forEach((opt, idx) => {
-        const li = document.createElement("li");
-        li.className = "scale-item";
-        const label = document.createElement("label");
-        const input = document.createElement("input");
-        input.type = "radio";
-        input.name = d.key + "-q1";
-        input.value = idx + 1;
-        input.dataset.dim = d.key;
-        input.dataset.question = "q1";
-        input.addEventListener("change", onAnswerChange);
-        const span = document.createElement("span");
-        span.textContent = opt;
-        label.appendChild(input);
-        label.appendChild(span);
-        li.appendChild(label);
-        q1ul.appendChild(li);
-      });
-      card.appendChild(q1ul);
-
-      // Vraag 2
-      const q2t = document.createElement("div");
-      q2t.className = "question-text";
-      q2t.textContent = "2) " + d.q2;
-      card.appendChild(q2t);
-
-      const q2ul = document.createElement("ul");
-      q2ul.className = "scale-list";
-      d.q2Scale.forEach((opt, idx) => {
-        const li = document.createElement("li");
-        li.className = "scale-item";
-        const label = document.createElement("label");
-        const input = document.createElement("input");
-        input.type = "radio";
-        input.name = d.key + "-q2";
-        input.value = idx + 1;
-        input.dataset.dim = d.key;
-        input.dataset.question = "q2";
-        input.addEventListener("change", onAnswerChange);
-        const span = document.createElement("span");
-        span.textContent = opt;
-        label.appendChild(input);
-        label.appendChild(span);
-        li.appendChild(label);
-        q2ul.appendChild(li);
-      });
-      card.appendChild(q2ul);
-
-      container.appendChild(card);
-    });
-  }
-
-  function onAnswerChange(e) {
-    const dim = e.target.dataset.dim;
-    const q = e.target.dataset.question;
-    const val = parseInt(e.target.value, 10);
-    if (!answers[dim]) answers[dim] = {};
-    answers[dim][q] = val;
-    updateProgress();
-    if (tried) updateValidationUi();
-  }
-
-  function onContactChange() {
-    if (tried) updateValidationUi();
-  }
-
-  function onSubmitClick() {
-    tried = true;
-    const allOk = allAnsweredAndValid();
-    updateValidationUi();
-    if (!allOk) return;
-
-    submitted = true;
-    document.getElementById("results-section").style.display = "block";
-
-    const results = calcResults();
-    renderRadar(results);
-    renderDimensionResults(results);
-    document.getElementById("narrative-text").textContent = narrativeFromResults(results);
-
-    notifyBackendOnce(results).catch(() => {});
-    updateValidationUi();
-    document
-      .getElementById("results-section")
-      .scrollIntoView({ behavior: "smooth", block: "start" });
-  }
-
-  document.addEventListener("DOMContentLoaded", () => {
-    buildQuestionnaire();
-    updateProgress();
-
-    document.getElementById("name").addEventListener("input", onContactChange);
-    document.getElementById("email").addEventListener("input", onContactChange);
-    document.getElementById("consent").addEventListener("change", onContactChange);
-
-    document.getElementById("show-results").addEventListener("click", onSubmitClick);
-
-    document.getElementById("download-pdf").addEventListener("click", async () => {
-      if (!submitted || !allAnsweredAndValid()) return;
-      const results = calcResults();
-      await downloadPdf(results);
-    });
-  });
-</script>
-</body>
+    <script src="./app.js"></script>
+  </body>
 </html>

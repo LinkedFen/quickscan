@@ -717,7 +717,12 @@ if (globalObj) {
   globalObj.Quickscan = QuickscanExports;
 }
 
-if (typeof document !== 'undefined' && !globalObj.__QUICKSCAN_NO_AUTO_INIT) {
+const autoInitDisabled =
+  (typeof globalThis !== 'undefined' &&
+    globalThis.__QUICKSCAN_NO_AUTO_INIT) ||
+  (globalObj && globalObj.__QUICKSCAN_NO_AUTO_INIT);
+
+if (typeof document !== 'undefined' && !autoInitDisabled) {
   document.addEventListener('DOMContentLoaded', () => {
     buildQuestionnaire();
     updateProgress();

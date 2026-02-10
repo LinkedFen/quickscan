@@ -93,6 +93,18 @@ Ensure all tests pass before submitting a pull request.
 - Ensure all tests pass
 - Keep pull requests focused on a single feature or fix
 
+### Automatic Branch Deletion
+
+To keep the repository clean, merged branches are automatically deleted after pull requests are successfully merged. This is handled by a GitHub Actions workflow that:
+
+- Only deletes branches when a PR is merged (not just closed)
+- Protects important branches (main, work, master, develop) from deletion
+- Runs automatically without requiring any manual action
+
+If you need to preserve a branch after merging, you can:
+1. Manually recreate the branch after merge if needed
+2. Or coordinate with maintainers to add it to the protected branches list
+
 ## Security
 
 If you discover a security vulnerability, please do not create a public issue. Instead, refer to our [Security Policy](SECURITY.md) for reporting instructions.

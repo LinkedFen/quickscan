@@ -719,8 +719,7 @@ if (globalObj) {
 }
 
 const autoInitDisabled =
-  (typeof globalThis !== 'undefined' &&
-    globalThis.__QUICKSCAN_NO_AUTO_INIT) ||
+  (typeof globalThis !== 'undefined' && globalThis.__QUICKSCAN_NO_AUTO_INIT) ||
   (globalObj && globalObj.__QUICKSCAN_NO_AUTO_INIT);
 
 if (typeof document !== 'undefined' && !autoInitDisabled) {

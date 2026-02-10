@@ -19,12 +19,28 @@ jobs:
           # Get the branch name from the PR
           BRANCH_NAME="${{ github.event.pull_request.head.ref }}"
           
-          # List of protected branches that should never be deleted
-          PROTECTED_BRANCHES="main work master develop"
+          echo "Processing branch: $BRANCH_NAME"
           
-          # Check if branch is in protected list
-          if echo "$PROTECTED_BRANCHES" | grep -w "$BRANCH_NAME" > /dev/null; then
-            echo "Branch '$BRANCH_NAME' is protected and will not be deleted"
+          # Validate branch name to prevent injection attacks
+          if [[ ! "$BRANCH_NAME" =~ ^[a-zA-Z0-9/_.-]+$ ]]; then
+            echo "Error: Branch name contains invalid characters"
+            exit 1
+          fi
+          
+          # List of protected branches that should never be deleted
+          PROTECTED_BRANCHES=("main" "work" "master" "develop" "production" "staging")
+          
+          # Check if branch is in protected list using array iteration
+          for protected in "${PROTECTED_BRANCHES[@]}"; do
+            if [[ "$BRANCH_NAME" == "$protected" ]]; then
+              echo "Branch '$BRANCH_NAME' is protected and will not be deleted"
+              exit 0
+            fi
+          done
+          
+          # Check if branch name starts with 'keep-' prefix
+          if [[ "$BRANCH_NAME" == keep-* ]]; then
+            echo "Branch '$BRANCH_NAME' has 'keep-' prefix and will not be deleted"
             exit 0
           fi
           

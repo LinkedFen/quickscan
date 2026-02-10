@@ -12,7 +12,8 @@ const {
   levelFromValues,
   narrativeFromResults,
   downloadPdf,
-  resetAnswers
+  resetAnswers,
+  notifyBackendOnce
 } = require('../app');
 
 describe('form validation', () => {
@@ -147,5 +148,77 @@ describe('PDF generation', () => {
     );
     expect(addImage).toHaveBeenCalled();
     expect(save).toHaveBeenCalled();
+  });
+});
+
+describe('resetAnswers', () => {
+  beforeEach(() => {
+    document.body.innerHTML = `
+      <div id="results-grid"></div>
+      <div id="notify-status"></div>
+      <input id="name" value="Tester" />
+      <input id="email" value="tester@example.com" />
+    `;
+  });
+
+  test('resets notification state to allow repeated notifications', async () => {
+    // Mock fetch to simulate successful notification
+    global.fetch = jest.fn(() =>
+      Promise.resolve({
+        ok: true,
+        status: 200
+      })
+    );
+
+    // Mock html2canvas
+    const mockCanvas = {
+      toDataURL: jest.fn(() => 'data:image/png;base64,123'),
+      width: 200,
+      height: 100
+    };
+    global.html2canvas = jest.fn(() => Promise.resolve(mockCanvas));
+
+    // Mock jsPDF
+    const output = jest.fn(
+      () => new global.Blob(['pdf'], { type: 'application/pdf' })
+    );
+    global.window.jspdf = {
+      jsPDF: jest.fn(() => ({
+        internal: {
+          pageSize: {
+            getWidth: () => 400,
+            getHeight: () => 600
+          }
+        },
+        addImage: jest.fn(),
+        setFontSize: jest.fn(),
+        text: jest.fn(),
+        output
+      }))
+    };
+
+    // Mock FileReader
+    const mockFileReader = {
+      readAsDataURL: jest.fn(function () {
+        this.onload();
+      }),
+      result: 'data:application/pdf;base64,mockbase64'
+    };
+    global.FileReader = jest.fn(() => mockFileReader);
+
+    // First notification should succeed
+    await notifyBackendOnce([]);
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+
+    // Second call without reset should be skipped (notified = true)
+    await notifyBackendOnce([]);
+    expect(global.fetch).toHaveBeenCalledTimes(1); // Still 1, not called again
+
+    // Reset state
+    resetAnswers();
+
+    // After reset, notification should work again
+    await notifyBackendOnce([]);
+    expect(global.fetch).toHaveBeenCalledTimes(2); // Called again after reset
   });
 });

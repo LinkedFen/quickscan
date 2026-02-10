@@ -161,6 +161,7 @@ function resetAnswers() {
   });
   tried = false;
   submitted = false;
+  notified = false;
 }
 
 // --- Helpers ---

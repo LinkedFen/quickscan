@@ -1,6 +1,7 @@
 const js = require('@eslint/js');
 const jestPlugin = require('eslint-plugin-jest');
 const prettierPlugin = require('eslint-plugin-prettier');
+const prettierConfig = require('eslint-config-prettier');
 
 const baseGlobals =
   (js.configs.recommended.languageOptions &&
@@ -39,6 +40,7 @@ module.exports = [
     rules: {
       ...js.configs.recommended.rules,
       ...jestPlugin.configs.recommended.rules,
+      ...prettierConfig.rules,
       'prettier/prettier': 'error',
       'no-unused-vars': [
         'warn',

@@ -1,0 +1,147 @@
+name: Close All Pull Requests
+
+on:
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Reason for closing all PRs'
+        required: false
+        default: 'Repository maintenance: closing all open pull requests.'
+
+jobs:
+  close-all-prs:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Close all open pull requests and delete their branches
+        run: |
+          REASON="${{ github.event.inputs.reason }}"
+          REPO="${{ github.repository }}"
+
+          # Single source of truth for protected branch names (space-separated)
+          PROTECTED_BRANCHES_LIST="main work master develop production staging"
+          # Build bash array from the list
+          read -r -a PROTECTED_BRANCHES <<< "$PROTECTED_BRANCHES_LIST"
+
+          is_protected_branch() {
+            local branch="$1"
+            for protected in "${PROTECTED_BRANCHES[@]}"; do
+              if [[ "$branch" == "$protected" ]]; then
+                return 0
+              fi
+            done
+            if [[ "$branch" == keep-* ]]; then
+              return 0
+            fi
+            return 1
+          }
+
+          delete_branch() {
+            local branch="$1"
+            # Branch names may contain alphanumeric characters, slashes, hyphens, underscores,
+            # and dots (standard GitHub branch naming). Forward slashes are common in branch
+            # names (e.g., feature/foo) and are passed only to the GitHub API, not to the shell
+            # filesystem, so path traversal is not a concern here.
+            if [[ ! "$branch" =~ ^[a-zA-Z0-9/_.-]+$ ]]; then
+              echo "Skipping branch '$branch': invalid characters"
+              return
+            fi
+            gh api \
+              --method DELETE \
+              -H "Accept: application/vnd.github+json" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              "/repos/$REPO/git/refs/heads/$branch" && \
+              echo "Deleted branch '$branch'" || \
+              echo "Could not delete branch '$branch' (may already be deleted or protected by GitHub)"
+          }
+
+          echo "Fetching all open pull requests..."
+          PAGE=1
+          while true; do
+            PRS=$(gh api \
+              -H "Accept: application/vnd.github+json" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              "/repos/$REPO/pulls?state=open&per_page=100&page=$PAGE")
+
+            COUNT=$(echo "$PRS" | python3 -c "import json,sys; data=json.load(sys.stdin); print(len(data))")
+            if [ "$COUNT" -eq 0 ]; then
+              break
+            fi
+
+            while IFS=' ' read -r PR_NUMBER BRANCH_NAME; do
+              echo "Closing PR #$PR_NUMBER (branch: $BRANCH_NAME)..."
+
+              # Post a comment before closing
+              gh api \
+                --method POST \
+                -H "Accept: application/vnd.github+json" \
+                -H "X-GitHub-Api-Version: 2022-11-28" \
+                "/repos/$REPO/issues/$PR_NUMBER/comments" \
+                -f body="$REASON" || true
+
+              # Close the pull request
+              gh api \
+                --method PATCH \
+                -H "Accept: application/vnd.github+json" \
+                -H "X-GitHub-Api-Version: 2022-11-28" \
+                "/repos/$REPO/pulls/$PR_NUMBER" \
+                -f state="closed" || true
+
+              echo "Closed PR #$PR_NUMBER"
+
+              if is_protected_branch "$BRANCH_NAME"; then
+                echo "Branch '$BRANCH_NAME' is protected and will not be deleted"
+              else
+                delete_branch "$BRANCH_NAME"
+              fi
+            done < <(echo "$PRS" | python3 -c "
+          import json, sys
+          data = json.load(sys.stdin)
+          for pr in data:
+              print(str(pr['number']) + ' ' + pr['head']['ref'])
+          ")
+
+            PAGE=$((PAGE + 1))
+          done
+
+          echo "Done: all open pull requests have been closed."
+
+          echo "Deleting remaining non-protected branches..."
+          PAGE=1
+          while true; do
+            BRANCHES=$(gh api \
+              -H "Accept: application/vnd.github+json" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              "/repos/$REPO/branches?per_page=100&page=$PAGE")
+
+            COUNT=$(echo "$BRANCHES" | python3 -c "import json,sys; data=json.load(sys.stdin); print(len(data))")
+            if [ "$COUNT" -eq 0 ]; then
+              break
+            fi
+
+            while IFS= read -r BRANCH_NAME; do
+              if is_protected_branch "$BRANCH_NAME"; then
+                echo "Branch '$BRANCH_NAME' is protected and will not be deleted"
+              else
+                delete_branch "$BRANCH_NAME"
+              fi
+            done < <(echo "$BRANCHES" | python3 -c "
+          import json, sys
+          data = json.load(sys.stdin)
+          protected = '$PROTECTED_BRANCHES_LIST'.split()
+          for b in data:
+              name = b['name']
+              if name not in protected and not name.startswith('keep-'):
+                  print(name)
+          ")
+
+            PAGE=$((PAGE + 1))
+          done
+
+          echo "Done: repository now has only protected branches."
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

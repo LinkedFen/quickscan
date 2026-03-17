@@ -5,9 +5,9 @@
  * Sign up at: https://resend.com
  * 
  * Environment Variables Required:
- * - NOTIFICATION_EMAIL: The email address to send notifications to (e.g., f.zwaans@supplyvalue.nl)
+ * - NOTIFICATION_EMAIL: The recipient email address that will recive notification
  * - RESEND_API_KEY: Your Resend API key (starts with re_)
- * - FROM_EMAIL: Your verified sender email (e.g., onboarding@resend.dev for testing)
+ * - FROM_EMAIL: Verified test email adress (sender)
  */
 
 const { Resend } = require('resend');
@@ -73,7 +73,7 @@ exports.handler = async (event, context) => {
 
     // Send email using Resend
     const { data, error } = await resend.emails.send({
-      from: process.env.FROM_EMAIL || 'onboarding@resend.dev',
+      from: process.env.FROM_EMAIL || 'verifiedtest@resend.dev',
       to: notificationEmail,
       subject: `Nieuwe Quick Scan resultaten van ${safeName}`,
       html: `

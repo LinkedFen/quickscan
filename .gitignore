@@ -4,3 +4,4 @@ src/dist/
 .DS_Store
 .env
 .env.local
+QuickStart.md

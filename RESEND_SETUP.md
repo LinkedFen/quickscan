@@ -64,9 +64,9 @@ Commit and push the changes.
 **In Netlify:**
 1. Go to Site settings → Environment variables
 2. Add:
-   - `NOTIFICATION_EMAIL` = `f.zwaans@supplyvalue.nl`
+   - `NOTIFICATION_EMAIL` = ``
    - `RESEND_API_KEY` = Your Resend API key (re_...)
-   - `FROM_EMAIL` = `onboarding@resend.dev` (for testing)
+   - `FROM_EMAIL` = `` (for testing)
 
 **In Vercel:**
 1. Go to Project Settings → Environment Variables
@@ -78,7 +78,7 @@ Commit and push the changes.
 2. Fill out the quickscan form
 3. Check your email inbox!
 
-**Note:** Initially, use `FROM_EMAIL=onboarding@resend.dev` for testing. Emails will come from Resend's test address.
+**Note:** Initially, use `FROM_EMAIL=` for testing. Emails will come from Resend's test address.
 
 ---
 
@@ -185,4 +185,4 @@ If Resend doesn't work for you either, here are more options:
 ## Support
 
 For Resend-specific questions: https://resend.com/docs  
-For this implementation: f.zwaans@supplyvalue.nl
+For this implementation: 

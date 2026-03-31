@@ -210,3 +210,6 @@ __marimo__/
 #netifly
 netifly/
 dist/
+docs/
+api/
+secrets/

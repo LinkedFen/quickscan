@@ -7,7 +7,7 @@
  * Environment Variables Required:
  * - NOTIFICATION_EMAIL: The email address to send notifications to
  * - RESEND_API_KEY: Your Resend API key (starts with re_)
- * - FROM_EMAIL: Your verified sender email ()
+ * - FROM_EMAIL: Your verified sender email
  */
 
 const { Resend } = require('resend');

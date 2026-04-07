@@ -213,3 +213,7 @@ dist/
 docs/
 api/
 secrets/
+
+# Node.js
+node_modules/
+package-lock.json
